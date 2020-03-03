@@ -123,6 +123,8 @@ print('')
 # Create folder with the same name as the export file for TensorBoard
 writer = SummaryWriter(os.path.join('runs', os.path.basename(savepath[:-4])))
 
+model = None
+
 # Import chosen net architecture as 'architecture'
 if choose_model == 'simple_CNN':
     from architectures import simple_CNN as architecture
@@ -132,9 +134,18 @@ elif choose_model == 'UnnConvNet':
     from architectures import lipreading_in_the_wild_convnet_unnormalized as architecture
 elif choose_model == 'RNN-ConvNet':
     from architectures import rnn_convnet as architecture
+elif choose_model == 'ResNet18':
+    data_transforms.append(transforms.Resize((256,256)))
+    model = torchvision.models.resnet18()
+    model.fc = nn.Linear(512, len(truth_table))
+elif choose_model == 'DrResNet18':
+    data_transforms.append(transforms.Resize((256,256)))
+    from architectures import ResNet18_dropout as architecture
 
-# channels = color channels of frame + color channels of the context frames
-model = architecture.Net(channels * (2 * context + 1), len(truth_table), dropout_rate).to(device)
+if not model:
+    # channels = color channels of frame + color channels of the context frames
+    model = architecture.Net(channels * (2 * context + 1), len(truth_table), dropout_rate).to(device)
+
 if cont_train:
     # Load saved weights into the net
     model.load_state_dict(torch.load(importpath, map_location=device))
