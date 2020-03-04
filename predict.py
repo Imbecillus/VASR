@@ -91,6 +91,10 @@ def load_model():
     elif choose_model == 'DrResNet18':
         transforms.append(torchvision.transforms.Resize((256,256)))
         from architectures import ResNet18_dropout as architecture
+    elif choose_model == 'DrResNet18b':
+        transforms.append(transforms.Resize((256,256)))
+        model = torchvision.models.resnet18()
+        model.fc = nn.Sequential(nn.Dropout(0), nn.Linear(512, len(truth_table)))
 
     assert os.path.exists(savepath), 'Specified model file does not exist.'
 

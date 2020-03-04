@@ -92,6 +92,10 @@ elif choose_model == 'ResNet18':
 elif choose_model == 'DrResNet18':
     data_transforms.append(transforms.Resize((256,256)))
     from architectures import ResNet18_dropout as architecture
+elif choose_model == 'DrResNet18b':
+    data_transforms.append(transforms.Resize((256,256)))
+    model = torchvision.models.resnet18()
+    model.fc = nn.Sequential(nn.Dropout(dropout_rate), nn.Linear(512, len(truth_table)))
 
 # VALIDATION
 testset = tcd.TCDTIMITDataset(validationset_path, data_transforms=data_transforms, n_files=n_files, viseme_set=viseme_set, context=context)

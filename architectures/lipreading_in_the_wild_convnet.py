@@ -46,6 +46,6 @@ class Net(nn.Module):
         x = F.relu(self.dropout(self.layer5(x)))
         x = x.view(-1, 512)
         x = F.relu(self.dropout(self.layer6(x)))
-        x = F.relu(self.dropout(self.layer7(x)))
+        x = F.relu(self.layer7(x))
         x = F.softmax(x.view(-1, self.target_size), dim=1)
         return x

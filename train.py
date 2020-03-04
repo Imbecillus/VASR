@@ -138,6 +138,10 @@ elif choose_model == 'ResNet18':
     data_transforms.append(transforms.Resize((256,256)))
     model = torchvision.models.resnet18()
     model.fc = nn.Linear(512, len(truth_table))
+elif choose_model == 'DrResNet18b':
+    data_transforms.append(transforms.Resize((256,256)))
+    model = torchvision.models.resnet18()
+    model.fc = nn.Sequential(nn.Dropout(dropout_rate), nn.Linear(512, len(truth_table)))
 elif choose_model == 'DrResNet18':
     data_transforms.append(transforms.Resize((256,256)))
     from architectures import ResNet18_dropout as architecture
