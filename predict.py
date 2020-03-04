@@ -7,6 +7,7 @@ import numpy as np
 import imageio
 import PIL
 from PIL import Image
+from torch import nn
 
 # Parsing command line
 config_path = sys.argv[1]
@@ -83,6 +84,13 @@ def load_model():
         from architectures import lipreading_in_the_wild_convnet_unnormalized as architecture
     elif choose_model == 'RNN-ConvNet':
         from architectures import rnn_convnet as architecture
+    elif choose_model == 'ResNet18':
+        transforms.append(torchvision.transforms.Resize((256,256)))
+        model = torchvision.models.resnet18()
+        model.fc = nn.Linear(512, len(truth_table))
+    elif choose_model == 'DrResNet18':
+        transforms.append(torchvision.transforms.Resize((256,256)))
+        from architectures import ResNet18_dropout as architecture
 
     assert os.path.exists(savepath), 'Specified model file does not exist.'
 

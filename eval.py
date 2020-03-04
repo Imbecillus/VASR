@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch.nn.functional as F
+from torch import nn
 
 import TCDTIMITdataset as tcd
 import helpers
@@ -75,6 +76,7 @@ assert os.path.exists(validationset_path), 'Specified split file does not exist'
 print('')
 
 # Import chosen net architecture as 'architecture'
+model = None
 if choose_model == 'simple_CNN':
     from architectures import simple_CNN as architecture
 elif choose_model == 'ConvNet':
@@ -83,6 +85,13 @@ elif choose_model == 'UnnConvNet':
     from architectures import lipreading_in_the_wild_convnet_unnormalized as architecture
 elif choose_model == 'RNN-ConvNet':
     from architectures import rnn_convnet as architecture
+elif choose_model == 'ResNet18':
+    data_transforms.append(transforms.Resize((256,256)))
+    model = torchvision.models.resnet18()
+    model.fc = nn.Linear(512, len(truth_table))
+elif choose_model == 'DrResNet18':
+    data_transforms.append(transforms.Resize((256,256)))
+    from architectures import ResNet18_dropout as architecture
 
 # VALIDATION
 testset = tcd.TCDTIMITDataset(validationset_path, data_transforms=data_transforms, n_files=n_files, viseme_set=viseme_set, context=context)
@@ -91,7 +100,8 @@ print('Starting evaluation for ' + savepath, flush=True)
 print('Validation set: ' + validationset_path)
 
 # Load saved net
-model = architecture.Net(channels * (2 * context + 1), len(truth_table))
+if not model:
+    model = architecture.Net(channels * (2 * context + 1), len(truth_table))
 model.load_state_dict(torch.load(savepath, map_location=device))
 
 # Print number of parameters trained
