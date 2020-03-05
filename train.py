@@ -138,6 +138,7 @@ elif choose_model == 'ResNet18':
     data_transforms.append(transforms.Resize((256,256)))
     model = torchvision.models.resnet18()
     model.fc = nn.Linear(512, len(truth_table))
+    model = model.to(device)
 elif choose_model == 'DrResNet18b':
     data_transforms.append(transforms.Resize((256,256)))
     model = torchvision.models.resnet18()
@@ -222,7 +223,7 @@ def fit(epochs, model, opt, train_dl):
 
         train_losses = []
         #stepstart = time.time()
-        #batchstart = time.time()
+        batchstart = time.time()
         
         for xb, yb in train_dl:
             #writer.add_scalar('batch load time', time.time() - stepstart, step)
@@ -231,13 +232,13 @@ def fit(epochs, model, opt, train_dl):
             tl = loss_batch(model, loss_func, model(xb.to(device)).to(device), yb.to(device), opt)
             
             #writer.add_scalar('batch loss calculation time', time.time() - stepstart, step)
-            #writer.add_scalar('batch time', time.time() - batchstart, step)
-            #writer.add_scalar('running loss', tl[0], step)
+            writer.add_scalar('batch time', time.time() - batchstart, step)
+            writer.add_scalar('running loss', tl[0], step)
             train_losses.append(tl[0])
 
-            #step += 1
+            step += 1
             #stepstart = time.time()
-            #batchstart = time.time()
+            batchstart = time.time()
         ll = 0
         ln = 0
         for l in train_losses:
