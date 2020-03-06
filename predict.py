@@ -10,16 +10,29 @@ from PIL import Image
 from torch import nn
 
 # Parsing command line
-config_path = sys.argv[1]
-path = sys.argv[2]
-if len(sys.argv) > 3:
-    export_path = sys.argv[3]
-    export = True
-else:
-    export = False
+export = False
+posteriors = False
+config_path = None
+path = None
+map = None
+
+for arg in sys.argv:
+    if arg.startswith('--conf='):
+        config_path = arg[7:]
+    elif arg.startswith('--path='):
+        path = arg[7:]
+    elif arg.startswith('--export='):
+        export_path = arg[9:]
+        open(export_path, 'w').write(f'%{path}\n')
+        export = True
+    elif arg.startswith('--map='):
+        map = arg[6:]
+    elif arg.startswith('--post'):
+        posteriors = True
+
+assert map in [None, 'jeffers-to-phn', 'lee-to-phn'], 'Unknown mapping specified.'
 
 arg_string = ""
-
 if os.path.isfile(config_path):
     with open(config_path) as config_lines:
         line = config_lines.readline()
@@ -138,11 +151,55 @@ def predict(path):
 
     return truth_table[p]
 
+def posts(path):
+    image = load_image(path)
+    xb = torch.from_numpy(image)
+    shape = xb.shape
+    xb = xb.reshape((1, shape[0], shape[1], shape[2]))
+
+    return model(xb)
+
 def print_prediction(path, frame, prediction):
+    prediction = prediction.view(len(prediction[0]))
+
+    if posteriors and map is not None:
+        # Perform mapping
+        if map == 'jeffers-to-phn':
+            from viseme_list import visemes_jeffersbarley
+            from viseme_list import jeffersbarley_to_phonemes
+            from viseme_list import phonemes
+
+            phoneme_posteriors = {}
+            for i in range(len(visemes_jeffersbarley)):
+                for phoneme in jeffersbarley_to_phonemes[visemes_jeffersbarley[i]]:
+                    phoneme_posteriors[phoneme] = prediction[i]
+            
+            new_prediction = [None] * len(phonemes)
+            for i in range(len(phonemes)):
+                new_prediction[i] = phoneme_posteriors.get(phonemes[i], 0)
+
+        elif map == 'lee-to-phn':
+            from viseme_list import visemes_lee
+            from viseme_list import lee_to_phonemes
+            from viseme_list import phonemes
+
+            phoneme_posteriors = {}
+            for i in range(len(visemes_lee)):
+                for phoneme in lee_to_phonemes[visemes_lee[i]]:
+                    phoneme_posteriors[phoneme] = prediction[i]
+            
+            new_prediction = [None] * len(phonemes)
+            for i in range(len(phonemes)):
+                new_prediction[i] = phoneme_posteriors.get(phonemes[i], 0)
+
+        prediction = new_prediction
+
+
     if not frame:
         out_str = f"{path}: {prediction}"
     else:
         out_str = f"{path}_{frame}: {prediction}"
+
     if not export:
         print(out_str)
     else:
@@ -154,13 +211,19 @@ def print_prediction(path, frame, prediction):
 model, transforms, truth_table = load_model()
 if os.path.isfile(path):
     print(f'Generating prediction for frame at {path}.')
-    prediction = predict(path)
+    if posteriors:
+        prediction = posts(path)
+    else:
+        prediction = predict(path)
     print_prediction(path, None, prediction)
 elif os.path.isdir(path):
     print(f'Generating predictions for sequence at {path}.')
     n_frames = len([name for name in os.listdir(path) if name.endswith('.pt')])
     for i in range(n_frames):
-        prediction = predict(os.path.join(path, str(i + 1) + '.pt'))
+        if posteriors:
+            prediction = posts(os.path.join(path, str(i + 1) + '.pt'))
+        else:
+            prediction = predict(os.path.join(path, str(i + 1) + '.pt'))
         print_prediction(path, i + 1, prediction)
 else:
     print(f'Error: {path} does not exist.')

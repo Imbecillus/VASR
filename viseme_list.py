@@ -162,7 +162,7 @@ phonemes_to_lee = {
     'sil' : 'S'
 }
 
-neti_to_phonemes = {'P': ['b', 'p', 'm'], 'T': ['d', 't', 's', 'z', 'th', 'dh'], 'K': ['g', 'k', 'n', 'ng', 'l', 'y', 'hh'], 'CH': ['jh', 'ch', 'sh', 'zh'], 'F': ['f', 'v'], 'W': ['r', 'w'], 'IY': ['iy', 'ih'], 'EH': ['eh', 'ey', 'ae'], 'AA': ['aa', 'aw', 'ay'], 'AH': ['ah'], 'AO': ['ao', 'oy', 'ow'], 'UH': ['uh', 'uw'], 'ER': ['er'], 'S': ['sil']}
+lee_to_phonemes = {'P': ['b', 'p', 'm'], 'T': ['d', 't', 's', 'z', 'th', 'dh'], 'K': ['g', 'k', 'n', 'ng', 'l', 'y', 'hh'], 'CH': ['jh', 'ch', 'sh', 'zh'], 'F': ['f', 'v'], 'W': ['r', 'w'], 'IY': ['iy', 'ih'], 'EH': ['eh', 'ey', 'ae'], 'AA': ['aa', 'aw', 'ay'], 'AH': ['ah'], 'AO': ['ao', 'oy', 'ow'], 'UH': ['uh', 'uw'], 'ER': ['er'], 'S': ['sil']}
 
 visemes_lee = [
     'P', 'T', 'K', 'CH', 'F', 'W', 'IY', 'EH', 'AA', 'AH', 'AO', 'UH', 'ER', 'S'
