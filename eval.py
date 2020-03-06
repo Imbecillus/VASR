@@ -96,7 +96,7 @@ elif choose_model == 'DrResNet18':
 elif choose_model == 'DrResNet18b':
     data_transforms.append(transforms.Resize((256,256)))
     model = torchvision.models.resnet18()
-    model.fc = nn.Sequential(nn.Dropout(0.0), nn.Linear(512, len(truth_table)))
+    model.fc = nn.Sequential(nn.Dropout(0.0), nn.Linear(512, len(truth_table)), nn.Softmax(dim=1))
 
 # VALIDATION
 testset = tcd.TCDTIMITDataset(validationset_path, data_transforms=data_transforms, n_files=n_files, viseme_set=viseme_set, context=context)
