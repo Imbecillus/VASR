@@ -230,6 +230,7 @@ def fit(epochs, model, opt, train_dl):
             #writer.add_scalar('batch load time', time.time() - stepstart, step)
 
             #stepstart = time.time()
+            xb = xb.type(torch.float)
             tl = loss_batch(model, loss_func, model(xb.to(device)).to(device), yb.to(device), opt)
             
             #writer.add_scalar('batch loss calculation time', time.time() - stepstart, step)
