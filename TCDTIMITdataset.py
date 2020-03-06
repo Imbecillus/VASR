@@ -148,14 +148,14 @@ class TCDTIMITDataset(Dataset):
         """
         if n < start:
             path, _ = self.data[start]
-            return self.__load_image(path)
+            return self.__loadimage(path)
 
         if n > stop:
             path, _ = self.data[stop]
-            return self.__load_image(path)
+            return self.__loadimage(path)
             
         path, _ = self.data[n]
-        return self.__load_image(path)
+        return self.__loadimage(path)
 
     def __get_image_context_and_truth(self, number):
         """
