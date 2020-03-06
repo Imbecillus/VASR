@@ -47,6 +47,8 @@ phonemes_to_neti = {
     'sp' : 'S'
 }
 
+neti_to_phonemes = {'V1': ['ao', 'ah', 'aa', 'er', 'oy', 'aw', 'hh'], 'V2': ['uw', 'uh', 'ow'], 'V3': ['ae', 'eh', 'ey', 'ay'], 'V4': ['ih', 'iy', 'ax'], 'A': ['l', 'el', 'r', 'y'], 'B': ['s', 'z'], 'C': ['t', 'd', 'n', 'en'], 'D': ['sh', 'zh', 'ch', 'jh'], 'E': ['p', 'b', 'm'], 'F': ['th', 'dh'], 'G': ['f', 'v'], 'H': ['ng', 'g', 'k', 'w'], 'S': ['sil', 'sp']}
+
 visemes_neti = [
     'V1', 'V2', 'V3', 'V4', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'S'
 ]
@@ -109,6 +111,8 @@ phonemes_to_jeffersbarley = {
     'hv': 'missing'
 }
 
+jeffersbarley_to_phonemes = {'A': ['f', 'v'], 'B': ['er', 'ow', 'r', 'q', 'w', 'uh', 'uw', 'axr', 'ux'], 'C': ['b', 'p', 'm', 'em'], 'D': ['aw'], 'E': ['dh', 'th'], 'F': ['ch', 'jh', 'sh', 'zh'], 'G': ['oy', 'ao'], 'H': ['s', 'z'], 'I': ['aa', 'ae', 'ah', 'ay', 'ey', 'ih', 'iy', 'y', 'eh', 'ax-h', 'ax', 'ix'], 'J': ['d', 'l', 'n', 't', 'el', 'nx', 'en', 'dx'], 'K': ['g', 'k', 'ng', 'eng'], 'S': ['sil'], 'missing': ['hh', 'hv']}
+
 visemes_jeffersbarley = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'S'
 ]
@@ -158,6 +162,8 @@ phonemes_to_lee = {
     'sil' : 'S'
 }
 
+neti_to_phonemes = {'P': ['b', 'p', 'm'], 'T': ['d', 't', 's', 'z', 'th', 'dh'], 'K': ['g', 'k', 'n', 'ng', 'l', 'y', 'hh'], 'CH': ['jh', 'ch', 'sh', 'zh'], 'F': ['f', 'v'], 'W': ['r', 'w'], 'IY': ['iy', 'ih'], 'EH': ['eh', 'ey', 'ae'], 'AA': ['aa', 'aw', 'ay'], 'AH': ['ah'], 'AO': ['ao', 'oy', 'ow'], 'UH': ['uh', 'uw'], 'ER': ['er'], 'S': ['sil']}
+
 visemes_lee = [
     'P', 'T', 'K', 'CH', 'F', 'W', 'IY', 'EH', 'AA', 'AH', 'AO', 'UH', 'ER', 'S'
 ]
@@ -197,6 +203,8 @@ phonemes_to_woodwarddisney = {
     'aw' : 'V4',
     '' : 'V4',
 }
+
+woodwarddisney_to_phonemes = {'C1': ['b', 'p', 'm'], 'C2': ['f', 'v'], 'C3': ['w', 'r'], 'C4': ['t', 'd', 'n', 'l', 'th', 'dh', 's', 'z', 'ch', 'jh', 'sh', 'zh', 'j', 'k', 'g', 'h'], 'V1': ['uh'], 'V4': ['', 'aw'], 'V2': ['iy', 'ay', 'eh', 'ah'], 'V3': ['uw']}
 
 phonemes = [
     'iy', 'ih', 'eh', 'ae', 'ah', 'uw', 'uh', 'aa', 'ey', 'ay', 'oy', 'aw', 'ow', 'l', 'r', 'y',
