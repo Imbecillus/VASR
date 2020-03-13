@@ -151,13 +151,17 @@ def predict(path):
 
     return truth_table[p]
 
-def posts(path):
-    image = load_image(path)
+def posts_from_image(image):
     xb = torch.from_numpy(image)
     shape = xb.shape
     xb = xb.reshape((1, shape[0], shape[1], shape[2]))
 
     return model(xb)
+
+def posts(path):
+    image = load_image(path)
+    
+    return posts_from_image(image)
 
 def print_prediction(path, frame, prediction):
     prediction = prediction.view(len(prediction[0]))
