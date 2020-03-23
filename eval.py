@@ -22,7 +22,7 @@ data_transforms = [
     ]
 validationset_path = None
 n_files = None
-truth_table = viseme_list.phonemes
+truth_table = viseme_list.phonemes_38
 savepath = './net.pth'
 viseme_set = None
 channels = 1
@@ -125,12 +125,12 @@ test_dl = DataLoader(testset, batch_size=8, shuffle=True)
 dataiter = iter(test_dl)
 image, label = dataiter.next()
 
-output = model(image)
-_, prediction = torch.max(output, 1)
-_, label = torch.max(label, 1)
-for t, p, o in zip(label, prediction, output):
-    print('Truth: ' + truth_table[t] + '; prediction: ' + truth_table[p])
-    print('Output: ', o)
+#output = model(image)
+#_, prediction = torch.max(output, 1)
+#_, label = torch.max(label, 1)
+#for t, p, o in zip(label, prediction, output):
+#    print('Truth: ' + truth_table[t] + '; prediction: ' + truth_table[p])
+#    print('Output: ', o)
 
 print('\nValidating over the entire set...', flush=True)
 acc, confusion_matrix = helpers.evaluate(testset, model, truth_table, device=device)
