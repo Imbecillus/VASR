@@ -64,3 +64,18 @@ def remap_to_phn(posts, original, target, convert_to_hmm_states = False, perform
         new_posts = new_posts.tolist()
 
     return new_posts
+
+# Function for remapping old predictions to Turbo map (alphabetic)
+def reorder_38phn(oldvector):
+    LUT = {'iy': 0, 'ih': 1, 'eh': 2, 'ae': 3, 'ah': 4, 'uw': 5, 'uh': 6, 'aa': 7, 'ey': 8, 'ay': 9, 'oy': 10, 'aw': 11, 'ow': 12, 'l': 13, 'r': 14, 'y': 15, 'w': 16, 'er': 17, 'm': 18, 'n': 19, 'ng': 20, 'ch': 21, 'jh': 22, 'dh': 23, 'b': 24, 'd': 25, 'dx': 26, 'g': 27, 'p': 28, 't': 29, 'k': 30, 'z': 31, 'v': 32, 'f': 33, 'th': 34, 's': 35, 'sh': 36, 'hh': 37, 'sil': 38}
+    from viseme_list import phonemes
+    from viseme_list import phonemes_old
+
+    newvector = [None] * 38
+    for i in range(38):
+        phoneme = phonemes[i]
+        if phoneme is not 'dx':
+            ix_old = LUT[phoneme]
+            newvector[i] = oldvector[ix_old]
+
+    return newvector
