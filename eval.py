@@ -87,7 +87,7 @@ elif choose_model == 'UnnConvNet':
 elif choose_model == 'RNN-ConvNet':
     from architectures import rnn_convnet as architecture
 elif choose_model == 'ResNet18':
-    data_transforms.append(transforms.Resize((256,256)))
+    #data_transforms.append(transforms.Resize((256,256)))
     model = torchvision.models.resnet18()
     model.fc = nn.Linear(512, len(truth_table))
 elif choose_model == 'DrResNet18':
