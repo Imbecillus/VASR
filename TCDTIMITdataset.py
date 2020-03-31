@@ -150,26 +150,29 @@ class TCDTIMITDataset(Dataset):
             truth_tensor = torch.tensor(self.truth_table.index(truth), dtype=torch.long)    # Create a tensor containing only the index of the ground truth.
 
         if self.context is not 0:
-            # Split path into directory and extension
+            # Split path into directory, filename (=framenumber) and extension
             dirpath = path[0:path.rfind('/') + 1]
+            framenumber = int(path[path.rfind('/') + 1 : path.index('.')])
             ext = path[path.index('.'):]
 
-            framenumbers = range(number - self.context, number + self.context + 1)
+            framenumbers = range(framenumber - self.context, framenumber + self.context + 1)
             frames = {}
             for n in framenumbers:
                 frames[n] = self.__get_image_in_sequence(dirpath, n, ext)
 
-            n_start = number - self.context                             # index of first context frame
-            shape = frames[number].shape                                # save shape for the multi-channel image and padding frames
-            
+            shape = frames[framenumber].shape                                # save shape for the multi-channel image and padding frames
+            print(shape)
+
             # Create image with the regular dimensions but additional channels for the context in both directions
             image = np.empty([(1 + 2 * self.context) * shape[0], shape[1], shape[2]])
+            start = framenumbers[0]
 
             for x in range(shape[1]):
                 for y in range(shape[2]):
-                    for n in range(1 + 2 * self.context):
+                    for n in framenumbers:
                         for c in range(shape[0]):
-                            image[n + c][x][y] = frames[n_start + n][c][x][y]
+                            image[shape[0] * (n - start) + c][x][y] = frames[n][c][x][y]
+            print(image)
         else:
             image = self.__loadimage(path)
 
