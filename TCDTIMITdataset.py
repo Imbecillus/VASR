@@ -129,7 +129,7 @@ class TCDTIMITDataset(Dataset):
         path = path.replace('/', os.sep)                    # Set system-appropriate path seperator in path
         path = path.replace('\\', os.sep)
 
-        if path.endswith('.pt'):
+        if path.endswith('.pt') or path.endswith('.pt36'):
             image = torch.load(path)
             image = np.array(image)
             image = image / 255

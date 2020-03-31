@@ -34,11 +34,12 @@ import viseme_list
 # Standard values for model parameters
 data_transforms = [
         transforms.Grayscale(),
-        transforms.Resize((100, 100))
+        transforms.Resize((36, 36))
     ]
 dataset_path = 'lips_phonemes_trainset.json'
+validationset_path = None
 n_files = None
-epochs = 50
+epochs = -1
 truth_table = viseme_list.phonemes_38
 savepath = './simple_cnn.pth'
 cont_train = False
@@ -72,6 +73,8 @@ for arg in sys.argv:
         importpath = arg[7:]
         cont_train = True
         print('Continuing from saved model at', importpath)
+    if 'import_offset=' in arg:
+        offset = arg[14:]
     if 'export=' in arg:
         savepath = arg[7:]
     if '-i' in arg:
@@ -90,15 +93,20 @@ for arg in sys.argv:
         n_files = int(arg[8:])
     if 'dataset=' in arg:
         dataset_path = arg[8:]
+    if 'devset=' in arg:
+        validationset_path = arg[7:]
     if 'epochs=' in arg:
         epochs = int(arg[7:])
     if 'color=' in arg:
         if 'true' in arg:
             channels = 3
-            data_transforms = []
+            data_transforms = [
+                transforms.Resize((36,36))
+            ]
         else:
             channels = 1
             data_transforms = [
+                    transforms.Resize((36,36)),
                     transforms.Grayscale()
                 ]
     if 'context=' in arg:
@@ -158,8 +166,12 @@ if cont_train:
 
 if weighted_loss:
     dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, truth='index')
+    if validationset_path is not None:
+        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=128, data_transforms=data_transforms, viseme_set=viseme_set, context=context, truth='index')
 else:
     dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context)
+    if validationset_path is not None:
+        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=128, data_transforms=data_transforms, viseme_set=viseme_set, context=context)
 
 print('Starting new training (' + str(epochs) + ' epochs).')
 if threshold == None:
@@ -178,6 +190,8 @@ if not n_files is None:
     print('Choosing ' + str(n_files) + ' random files.')
 else:
     print('Training over the full trainset (' + str(len(dataset)) + ').')
+if validationset_path is not None:
+    print('Evaluating over 100 validationset frames each epoch.')
 if channels == 1:
     print('Converting to grayscale.')
 if truth_table == viseme_list.phonemes:
@@ -197,7 +211,7 @@ def loss_batch(model, loss_func, prediction, yb, opt=None):
 
     return loss.item(), len(prediction)
 
-def fit(epochs, model, opt, train_dl):
+def fit(epochs, model, opt, train_dl, valid_dl=None):
     last_error = 100
     start = time.time()
     convergence_tracker = 0
@@ -212,7 +226,10 @@ def fit(epochs, model, opt, train_dl):
 
     step = 1
     epoch = 0
+    if cont_train:
+        epoch = epoch + offset
     abort = False
+
     while not abort:
         epoch_time = time.time()
         model.train()
@@ -249,8 +266,14 @@ def fit(epochs, model, opt, train_dl):
         training_loss = ll / ln
         writer.add_scalar('epoch loss', training_loss, epoch + 1)
 
+        # Evaluate on random dev set selection
+        acc = ''
+        if valid_dl is not None:
+            acc, _ = helpers.evaluate(valid_dl, model, truth_table, device=device)
+            acc = round(acc, 2)
+
         # Print training loss and time for every epoch
-        print(epoch + 1, round(training_loss, 4), helpers.time_since(start), helpers.time_since(epoch_time), flush=True)
+        print(epoch + 1, round(training_loss, 4), acc, helpers.time_since(start), helpers.time_since(epoch_time), flush=True)
 
         epoch = epoch + 1
 
@@ -281,6 +304,10 @@ def fit(epochs, model, opt, train_dl):
             torch.save(model.state_dict(), savepath[0:-4] + '_' + str(epoch) + '.pth')
 
 train_batch_dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+if validationset_path is not None:
+    valid_batch_dl = DataLoader(validationset, batch_size=1, shuffle=True)
+else:
+    valid_batch_dl = None
 
 opt = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=wd)
 
@@ -297,7 +324,7 @@ if weighted_loss:
     weights = torch.tensor([weight_dict[c] for c in truth_table]).to(device)
     print(weight_dict, flush=True)
 
-fit(epochs, model, opt, train_batch_dl)
+fit(epochs, model, opt, train_batch_dl, valid_batch_dl)
 
 # Save trained model
 torch.save(model.state_dict(), savepath)

@@ -18,7 +18,7 @@ start = time.time()
 # Standard values for model parameters
 data_transforms = [
         transforms.Grayscale(),
-        transforms.Resize((100, 100))
+        transforms.Resize((36, 36))
     ]
 validationset_path = None
 n_files = None

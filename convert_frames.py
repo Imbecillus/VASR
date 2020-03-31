@@ -6,11 +6,13 @@ import torch
 import numpy as np
 
 directory = '/beegfs/work/shared/TCD-TIMIT/volunteers/'
-ignore = ['01M', '02M', '03F', '04M', '05F', '06M', '07F', '08F', '09F', '10M', '11F', '12M', '13F', '14M', '15F', '16M', '17F', '18M', '19M', '20M', '21M', '22M', '23M', '24M', '25M', '26M', '27M', '28M', '29M']
+#ignore = ['01M', '02M', '03F', '04M', '05F', '06M', '07F', '08F', '09F', '10M', '11F', '12M', '13F', '14M', '15F', '16M', '17F', '18M', '19M', '20M', '21M', '22M', '23M', '24M', '25M', '26M', '27M', '28M', '29M', '30F']
+ignore = []
 
 print('Converting and rescaling everything from', directory, 'to 36x36 pixel JPG and PT files.')
 
-people = [name for name in os.listdir(directory) if osp.isdir(osp.join(directory, name))]
+#people = [name for name in os.listdir(directory) if osp.isdir(osp.join(directory, name))]
+people = ['01M']
 
 
 for person in people:
