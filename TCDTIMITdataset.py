@@ -63,12 +63,10 @@ class TCDTIMITDataset(Dataset):
         # create data structure for __getitem__ which contains paths to image files
         json_data = json.load(open(dataset, 'r'))
         data = []
-        self.seq_starts = []
         # iterate through speakers
         for speaker_key in json_data:
             # iterate through sequences
             for seq_key in json_data[speaker_key]:
-                self.seq_starts.append(len(data))                # Create a list of the start frame indices for each sequence
                 if not sequences:
                     # iterate through frames and add frames to data individually
                     for frame_number in json_data[speaker_key][seq_key]:
@@ -99,25 +97,6 @@ class TCDTIMITDataset(Dataset):
 
         self.data = data
 
-    def __get_sequence_start_stop(self, number):
-        """
-        Returns the first and last frame indices of the sequence the given frame is part of.
-        """
-        start = 0
-        stop = 0
-        
-        for seq_id in self.seq_starts:
-            if number >= seq_id:
-                start = seq_id
-            else:
-                stop = seq_id - 1
-                break
-
-        if stop == 0:
-            stop = len(self.data) - 1
-
-        return start, stop
-
     def __len__(self):
         """Returns the number of elements inside the dataset."""
         return len(self.data)
@@ -142,20 +121,20 @@ class TCDTIMITDataset(Dataset):
 
         return image
 
-    def __get_image_in_sequence(self, n, start, stop):
+    def __get_image_in_sequence(self, dir_path, n, extension):
         """
-        Checks whether index n is between start and stop. Returns image at n if yes; returns start- or stop-frame as appropriate if no.
+        Checks whether image file for index n exists or the index is out of bounds. If it is out of bounds, recursively searches for the beginning/end of the sequence
         """
-        if n < start:
-            path, _ = self.data[start]
+        path = f'{dir_path}{n}{extension}'
+        if os.path.isfile(path):
             return self.__loadimage(path)
-
-        if n > stop:
-            path, _ = self.data[stop]
-            return self.__loadimage(path)
-            
-        path, _ = self.data[n]
-        return self.__loadimage(path)
+        else:
+            if n < 1:
+                # n is lower than first frame; load first frame
+                return self.__loadimage(f'{dir_path}1{extension}')
+            else:
+                # n seems to be higher than last frame; reduce by one until file is found
+                return self.__get_image_in_sequence(dir_path, n - 1, extension)
 
     def __get_image_context_and_truth(self, number):
         """
@@ -171,17 +150,15 @@ class TCDTIMITDataset(Dataset):
             truth_tensor = torch.tensor(self.truth_table.index(truth), dtype=torch.long)    # Create a tensor containing only the index of the ground truth.
 
         if self.context is not 0:
-            # add context around the frame as additional channels
-            numbers = range(number - self.context, number + self.context + 1)
+            # Split path into directory and extension
+            dirpath = path[0:path.rfind('/') + 1]
+            ext = path[path.index('.'):]
 
-            # get the bounds of the current sequence:
-            start, stop = self.__get_sequence_start_stop(number)
-
-            # read the individual frames in
+            framenumbers = range(number - self.context, number + self.context + 1)
             frames = {}
-            for n in numbers:
-                frames[n] = self.__get_image_in_sequence(n, start, stop)
-                                        
+            for n in framenumbers:
+                frames[n] = self.__get_image_in_sequence(dirpath, n, ext)
+
             n_start = number - self.context                             # index of first context frame
             shape = frames[number].shape                                # save shape for the multi-channel image and padding frames
             
