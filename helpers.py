@@ -14,7 +14,7 @@ def time_since(start):
 
     return str(round(passed, 2)) + ' ' + unit
 
-def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=None):
+def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=None, max=None, verbose=False):
     import torch
     from torch.utils.data import DataLoader
 
@@ -27,7 +27,7 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
 
     model.to(device)
 
-    valid_dl = DataLoader(validationset, shuffle=True)
+    valid_dl = DataLoader(validationset, batch_size=1, shuffle=True)
 
     count_all = 0
     count_correct = 0
@@ -43,11 +43,12 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
         prediction_vector = model(xb).to(device)
 
         # Print progress counter
-        if count_all % step == 0:
-            if count_all != len(valid_dl):
-                print(round(count_all / len(valid_dl), 2) * 100, '% :', round(100 * (count_correct / count_all), 2), '% Acc', flush=True)
-            else:
-                print(round(count_all / len(valid_dl), 2) * 100)
+        if verbose:
+            if count_all % step == 0:
+                if count_all != len(valid_dl):
+                    print(round(count_all / len(valid_dl), 2) * 100, '% :', round(100 * (count_correct / count_all), 2), '% Acc', flush=True)
+                else:
+                    print(round(count_all / len(valid_dl), 2) * 100)
 
         # Get index of the likeliest prediction
         _, pred = torch.max(prediction_vector, 1)
@@ -75,15 +76,21 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
             confusion_matrix[truth][pred] = 0
         confusion_matrix[truth][pred] += 1                      # Increment entry in confusion matrix for the truth-prediction-pair
 
+        # Abort if a maximum number of samples to be evaluated has been specified and reached
+        if max is not None:
+            if count_all >= max:
+                break
+
     # Print average prediction scores for recognized phonemes/visemes
-    print('Average prediction scores (for phonemes/visemes that were recognized at least once):')
-    for key in certainty.keys():
-        avg_certainty = 0.0
-        for c in certainty[key]:
-            avg_certainty = avg_certainty + c
-        avg_certainty = avg_certainty / len(certainty[key])
-        print(key, avg_certainty)
-    print('Total classes trained: ', len(certainty), '/', len(truth_table), flush=True)
+    if verbose:
+        print('Average prediction scores (for phonemes/visemes that were recognized at least once):')
+        for key in certainty.keys():
+            avg_certainty = 0.0
+            for c in certainty[key]:
+                avg_certainty = avg_certainty + c
+            avg_certainty = avg_certainty / len(certainty[key])
+            print(key, avg_certainty)
+        print('Total classes trained: ', len(certainty), '/', len(truth_table), flush=True)
 
     return 100 * (count_correct / count_all), confusion_matrix
 
