@@ -147,14 +147,10 @@ elif choose_model == 'ResNet18':
     model = torchvision.models.resnet18()
     model.fc = nn.Linear(512, len(truth_table))
     model = model.to(device)
-elif choose_model == 'DrResNet18b':
-    data_transforms.append(transforms.Resize((256,256)))
+elif choose_model == 'DrResNet18':
     model = torchvision.models.resnet18()
     model.fc = nn.Sequential(nn.Dropout(dropout_rate), nn.Linear(512, len(truth_table)))
     model = model.to(device)
-elif choose_model == 'DrResNet18':
-    data_transforms.append(transforms.Resize((256,256)))
-    from architectures import ResNet18_dropout as architecture
 
 if not model:
     # channels = color channels of frame + color channels of the context frames
