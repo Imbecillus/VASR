@@ -167,11 +167,11 @@ if cont_train:
 if weighted_loss:
     dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, truth='index')
     if validationset_path is not None:
-        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=128, data_transforms=data_transforms, viseme_set=viseme_set, context=context, truth='index')
+        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, truth='index')
 else:
     dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context)
     if validationset_path is not None:
-        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=128, data_transforms=data_transforms, viseme_set=viseme_set, context=context)
+        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context)
 
 print('Starting new training (' + str(epochs) + ' epochs).')
 if threshold == None:
@@ -211,15 +211,17 @@ def loss_batch(model, loss_func, prediction, yb, opt=None):
 
     return loss.item(), len(prediction)
 
-def fit(epochs, model, opt, train_dl, valid_dl=None):
+def fit(epochs, model, opt, train_dl, dataset, validationset=None):
     last_error = 100
     start = time.time()
     convergence_tracker = 0
 
     if weighted_loss:
         loss_func = torch.nn.CrossEntropyLoss(weight=weights)
+        ground_truth = 'index'
     else:
         loss_func = torch.nn.MSELoss()
+        ground_truth = 'one-hot'
 
     if lr_warmup:
         delta_lr = (learning_rate - lr_pt) / 4
@@ -266,14 +268,20 @@ def fit(epochs, model, opt, train_dl, valid_dl=None):
         training_loss = ll / ln
         writer.add_scalar('epoch loss', training_loss, epoch + 1)
 
-        # Evaluate on random dev set selection
-        acc = ''
-        if valid_dl is not None:
-            acc, _ = helpers.evaluate(valid_dl, model, truth_table, device=device)
-            acc = round(acc, 2)
+        # Evaluate on train and dev set
+        model.eval()
+        train_acc, _ = helpers.evaluate(dataset, model, truth_table, ground_truth=ground_truth, device=device, max=256)
+        train_acc = round(train_acc, 2)
+        writer.add_scalar('train acc', train_acc, epoch + 1)
 
-        # Print training loss and time for every epoch
-        print(epoch + 1, round(training_loss, 4), acc, helpers.time_since(start), helpers.time_since(epoch_time), flush=True)
+        valid_acc = ''
+        if validationset is not None:
+            valid_acc, _ = helpers.evaluate(validationset, model, truth_table, ground_truth=ground_truth, device=device, max=256)
+            valid_acc = round(valid_acc, 2)
+            writer.add_scalar('valid acc', valid_acc, epoch + 1)
+
+        # Print training loss, accuracies, and time for every epoch
+        print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc}; Valid. Acc.: {valid_acc}. (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)")
 
         epoch = epoch + 1
 
@@ -294,7 +302,7 @@ def fit(epochs, model, opt, train_dl, valid_dl=None):
         # Abort if threshold has been reached
         if threshold != None:
             if training_loss < threshold:
-                print(f'Loss has sunken below threshold({threshold}). Stopping training.')
+                print(f'Loss has sunken below threshold ({threshold}). Stopping training.')
                 abort = True
 
         last_error = training_loss
@@ -304,10 +312,6 @@ def fit(epochs, model, opt, train_dl, valid_dl=None):
             torch.save(model.state_dict(), savepath[0:-4] + '_' + str(epoch) + '.pth')
 
 train_batch_dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-if validationset_path is not None:
-    valid_batch_dl = DataLoader(validationset, batch_size=1, shuffle=True)
-else:
-    valid_batch_dl = None
 
 opt = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=wd)
 
@@ -324,7 +328,7 @@ if weighted_loss:
     weights = torch.tensor([weight_dict[c] for c in truth_table]).to(device)
     print(weight_dict, flush=True)
 
-fit(epochs, model, opt, train_batch_dl, valid_batch_dl)
+fit(epochs, model, opt, train_batch_dl, dataset, validationset)
 
 # Save trained model
 torch.save(model.state_dict(), savepath)

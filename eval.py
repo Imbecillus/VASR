@@ -133,7 +133,7 @@ image, label = dataiter.next()
 #    print('Output: ', o)
 
 print('\nValidating over the entire set...', flush=True)
-acc, confusion_matrix = helpers.evaluate(testset, model, truth_table, device=device)
+acc, confusion_matrix = helpers.evaluate(testset, model, truth_table, device=device, verbose=True)
 print('Frame accuracy: ' + str(acc) + '\n')
 
 # If specified, add the suffix to the savepath
