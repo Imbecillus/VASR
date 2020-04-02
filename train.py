@@ -74,7 +74,7 @@ for arg in sys.argv:
         cont_train = True
         print('Continuing from saved model at', importpath)
     if 'import_offset=' in arg:
-        offset = arg[14:]
+        offset = int(arg[14:])
     if 'export=' in arg:
         savepath = arg[7:]
     if '-i' in arg:
@@ -280,7 +280,7 @@ def fit(epochs, model, opt, train_dl, dataset, validationset=None):
             writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
         # Print training loss, accuracies, and time for every epoch
-        print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc}; Valid. Acc.: {valid_acc}. (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)")
+        print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc}; Valid. Acc.: {valid_acc}. (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
 
         epoch = epoch + 1
 
