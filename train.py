@@ -151,6 +151,9 @@ elif choose_model == 'DrResNet18':
     model = torchvision.models.resnet18()
     model.fc = nn.Sequential(nn.Dropout(dropout_rate), nn.Linear(512, len(truth_table)))
     model = model.to(device)
+elif choose_model == 'ResNet10':
+    from architectures import sigmedia as architecture
+    model = architecture.Net(channels * (2 * context + 1), len(truth_table), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
 
 if not model:
     # channels = color channels of frame + color channels of the context frames
