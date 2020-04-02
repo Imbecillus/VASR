@@ -95,6 +95,9 @@ elif choose_model == 'DrResNet18':
     model = torchvision.models.resnet18()
     model.fc = nn.Sequential(nn.Dropout(0.0), nn.Linear(512, len(truth_table)), nn.Softmax(dim=1))
     model = model.float()
+elif choose_model == 'ResNet10':
+    from architectures import sigmedia as architecture
+    model = architecture.Net(channels * (2 * context + 1), len(truth_table), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
 
 # VALIDATION
 testset = tcd.TCDTIMITDataset(validationset_path, data_transforms=data_transforms, n_files=n_files, viseme_set=viseme_set, context=context)
