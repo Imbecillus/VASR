@@ -269,18 +269,18 @@ def fit(epochs, model, opt, train_dl, dataset, validationset=None):
 
         # Evaluate on train and dev set
         model.eval()
-        train_acc, _ = helpers.evaluate(dataset, model, truth_table, ground_truth=ground_truth, device=device, max=256)
+        train_acc, train_classes = helpers.evaluate(dataset, model, truth_table, ground_truth=ground_truth, device=device, max=256)
         train_acc = round(train_acc, 2)
         writer.add_scalar('train acc', train_acc, epoch + 1)
 
         valid_acc = ''
         if validationset is not None:
-            valid_acc, _ = helpers.evaluate(validationset, model, truth_table, ground_truth=ground_truth, device=device, max=256)
+            valid_acc, valid_classes = helpers.evaluate(validationset, model, truth_table, ground_truth=ground_truth, device=device, max=256)
             valid_acc = round(valid_acc, 2)
             writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
         # Print training loss, accuracies, and time for every epoch
-        print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc}; Valid. Acc.: {valid_acc}. (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
+        print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc} ({train_classes}/{len(truth_table)}); Valid. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) === (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
 
         epoch = epoch + 1
 

@@ -92,7 +92,10 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
             print(key, avg_certainty)
         print('Total classes trained: ', len(certainty), '/', len(truth_table), flush=True)
 
-    return 100 * (count_correct / count_all), confusion_matrix
+    if verbose:
+        return 100 * (count_correct / count_all), confusion_matrix
+    else:
+        return 100 * (count_correct / count_all), len(certainty)
 
 def print_confusion_matrix(confusion_dict, truth_table, savepath):
     confusion_matrix = [[0 for x in range(len(truth_table))] for y in range(len(truth_table))]      # Initialize NxN matrix filled with zeros with N=length of truth table
