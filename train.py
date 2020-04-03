@@ -190,7 +190,7 @@ if not n_files is None:
 else:
     print('Training over the full trainset (' + str(len(dataset)) + ').')
 if validationset_path is not None:
-    print('Evaluating over 100 validationset frames each epoch.')
+    print(f'Evaluating over 512 validationset frames each epoch. (set is {validationset_path}.)')
 if channels == 1:
     print('Converting to grayscale.')
 if truth_table == viseme_list.phonemes:
@@ -269,13 +269,13 @@ def fit(epochs, model, opt, train_dl, dataset, validationset=None):
 
         # Evaluate on train and dev set
         model.eval()
-        train_acc, train_classes = helpers.evaluate(dataset, model, truth_table, ground_truth=ground_truth, device=device, max=1024)
+        train_acc, train_classes = helpers.evaluate(dataset, model, truth_table, ground_truth=ground_truth, device=device, max=512)
         train_acc = round(train_acc, 2)
         writer.add_scalar('train acc', train_acc, epoch + 1)
 
         valid_acc = ''
         if validationset is not None:
-            valid_acc, valid_classes = helpers.evaluate(validationset, model, truth_table, ground_truth=ground_truth, device=device, max=1024)
+            valid_acc, valid_classes = helpers.evaluate(validationset, model, truth_table, ground_truth=ground_truth, device=device, max=512)
             valid_acc = round(valid_acc, 2)
             writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
