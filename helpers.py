@@ -27,54 +27,59 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
 
     model.to(device)
 
-    valid_dl = DataLoader(validationset, batch_size=1, shuffle=True)
+    valid_dl = DataLoader(validationset, batch_size=2048, shuffle=True)
 
     count_all = 0
     count_correct = 0
     confusion_matrix = {}
     certainty = {}
 
-    step = int(0.1 * len(valid_dl))
+    step = int(0.1 * (len(valid_dl) * 2048))
 
     for xb, yb in valid_dl:
         xb = xb.to(device)
         yb = yb.to(device)
-        count_all += 1
-        prediction_vector = model(xb).to(device)
+        predictions = model(xb).to(device)
 
-        # Print progress counter
-        if verbose:
-            if count_all % step == 0:
-                if count_all != len(valid_dl):
-                    print(round(count_all / len(valid_dl), 2) * 100, '% :', round(100 * (count_correct / count_all), 2), '% Acc', flush=True)
-                else:
-                    print(round(count_all / len(valid_dl), 2) * 100)
+        for i in range(len(predictions)):
+            count_all += 1
 
-        # Get index of the likeliest prediction
-        _, pred = torch.max(prediction_vector, 1)
+            prediction_vector = predictions[i]
+            label = yb[i]
 
-        # Get index of the ground truth (if ground truth isn't already given as an index)
-        if ground_truth != 'index':
-            _, truth = torch.max(yb, 1)
-        else:
-            truth = yb
+            # Print progress counter
+            if verbose:
+                if count_all % step == 0:
+                    if count_all != len(valid_dl):
+                        print(round(count_all / (2048 * len(valid_dl)), 2) * 100, '% :', round(100 * (count_correct / count_all), 2), '% Acc', flush=True)
+                    else:
+                        print(round(count_all / (2048 * len(valid_dl)), 2) * 100)
 
-        if pred == truth:                                       # If prediction is correct
-            count_correct += 1                                  # Count correct predictions up
-            truth_phoneme = truth_table[truth]
-            if truth_phoneme not in certainty.keys():           # Add phoneme/viseme to list of classes that were recognized
-                certainty[truth_phoneme] = []
-            score = prediction_vector[0][truth]
-            certainty[truth_phoneme].append(float(score[0]))    # Save score, so that we can calculate the average prediction scores later
+            # Get index of the likeliest prediction
+            _, pred = torch.max(prediction_vector, 0)
 
-        # Confusion Matrix
-        truth = truth_table[truth]
-        pred = truth_table[pred]
-        if truth not in confusion_matrix.keys():
-            confusion_matrix[truth] = {}                        # Initialize entries in confusion matrix
-        if pred not in confusion_matrix[truth].keys():
-            confusion_matrix[truth][pred] = 0
-        confusion_matrix[truth][pred] += 1                      # Increment entry in confusion matrix for the truth-prediction-pair
+            # Get index of the ground truth (if ground truth isn't already given as an index)
+            if ground_truth != 'index':
+                _, truth = torch.max(label, 0)
+            else:
+                truth = label
+
+            if pred == truth:                                       # If prediction is correct
+                count_correct += 1                                  # Count correct predictions up
+                truth_phoneme = truth_table[truth]
+                if truth_phoneme not in certainty.keys():           # Add phoneme/viseme to list of classes that were recognized
+                    certainty[truth_phoneme] = []
+                score = prediction_vector[truth]
+                certainty[truth_phoneme].append(float(score))    # Save score, so that we can calculate the average prediction scores later
+
+            # Confusion Matrix
+            truth = truth_table[truth]
+            pred = truth_table[pred]
+            if truth not in confusion_matrix.keys():
+                confusion_matrix[truth] = {}                        # Initialize entries in confusion matrix
+            if pred not in confusion_matrix[truth].keys():
+                confusion_matrix[truth][pred] = 0
+            confusion_matrix[truth][pred] += 1                      # Increment entry in confusion matrix for the truth-prediction-pair
 
         # Abort if a maximum number of samples to be evaluated has been specified and reached
         if max is not None:
@@ -96,6 +101,58 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
         return 100 * (count_correct / count_all), confusion_matrix
     else:
         return 100 * (count_correct / count_all), len(certainty)
+
+def batch_evaluate(batch, model, truth_table, ground_truth='one-hot', device=None):
+    import torch
+
+    # Load everything onto the same device
+    if device == None:
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+        else:
+            device = torch.device('cpu')
+
+    model = model.to(device)
+
+    count_all = 0
+    count_correct = 0
+    recognized_classes = []
+
+    inputs = batch[0].to(device)
+    predictions = model(inputs).to(device)
+
+    labels = batch[1].to(device)
+
+    for i in range(len(inputs)):
+        yb = labels[i]
+        prediction_vector = predictions[i]
+
+        count_all += 1
+
+        # Get index of the likeliest prediction
+        _, pred = torch.max(prediction_vector, 0)
+
+        # Get index of the ground truth (if ground truth isn't already given as an index)
+        if ground_truth != 'index':
+            _, truth = torch.max(yb, 1)
+        else:
+            truth = yb
+
+        if pred == truth:                                       # If prediction is correct
+            count_correct += 1                                  # Count correct predictions up
+            truth_phoneme = truth_table[truth]
+            if truth_phoneme not in recognized_classes:           # Add phoneme/viseme to list of classes that were recognized
+                recognized_classes.append(truth_phoneme)
+            
+    return 100 * (count_correct / count_all), len(recognized_classes)
+
+def load_batch(dataset, size):
+    from torch.utils.data import DataLoader
+    
+    dl = DataLoader(dataset, batch_size=size)
+    dl_iter = iter(dl)
+
+    return next(dl_iter)
 
 def print_confusion_matrix(confusion_dict, truth_table, savepath):
     confusion_matrix = [[0 for x in range(len(truth_table))] for y in range(len(truth_table))]      # Initialize NxN matrix filled with zeros with N=length of truth table

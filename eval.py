@@ -59,13 +59,13 @@ for arg in sys.argv:
         if 'true' in arg:
             channels = 3
             data_transforms = [
-                transforms.Resize((100,100))
+                transforms.Resize((36,36))
             ]
         else:
             channels = 1
             data_transforms = [
                     transforms.Grayscale(),
-                    transforms.Resize((100, 100))
+                    transforms.Resize((36, 36))
                 ]
     if 'context=' in arg:
         context = int(arg[8:])

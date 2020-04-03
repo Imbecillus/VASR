@@ -58,6 +58,7 @@ learning_rate = 0.001
 lr_warmup = False
 lr_pt = None
 threshold = None
+epoch_evaluation_batch_size = 2048
 
 if torch.cuda.is_available():
 	print("CUDA available", flush=True)
@@ -95,6 +96,8 @@ for arg in sys.argv:
         dataset_path = arg[8:]
     if 'devset=' in arg:
         validationset_path = arg[7:]
+    if 'epoch_eval_count=' in arg:
+        epoch_evaluation_batch_size = int(arg[17:])
     if 'epochs=' in arg:
         epochs = int(arg[7:])
     if 'color=' in arg:
@@ -210,7 +213,7 @@ def loss_batch(model, loss_func, prediction, yb, opt=None):
 
     return loss.item(), len(prediction)
 
-def fit(epochs, model, opt, train_dl, dataset, validationset=None):
+def fit(epochs, model, opt, train_dl, dataset, validationset):
     last_error = 100
     start = time.time()
     convergence_tracker = 0
@@ -230,6 +233,10 @@ def fit(epochs, model, opt, train_dl, dataset, validationset=None):
     if cont_train:
         epoch = epoch + offset
     abort = False
+
+    # Get batches for epoch evaluation
+    epoch_eval_train = helpers.load_batch(dataset, epoch_evaluation_batch_size)
+    epoch_eval_dev   = helpers.load_batch(validationset, epoch_evaluation_batch_size)
 
     while not abort:
         epoch_time = time.time()
@@ -269,15 +276,14 @@ def fit(epochs, model, opt, train_dl, dataset, validationset=None):
 
         # Evaluate on train and dev set
         model.eval()
-        train_acc, train_classes = helpers.evaluate(dataset, model, truth_table, ground_truth=ground_truth, device=device, max=512)
+        train_acc, train_classes = helpers.batch_evaluate(epoch_eval_train, model, truth_table, ground_truth=ground_truth, device=device)
         train_acc = round(train_acc, 2)
         writer.add_scalar('train acc', train_acc, epoch + 1)
 
         valid_acc = ''
-        if validationset is not None:
-            valid_acc, valid_classes = helpers.evaluate(validationset, model, truth_table, ground_truth=ground_truth, device=device, max=512)
-            valid_acc = round(valid_acc, 2)
-            writer.add_scalar('valid acc', valid_acc, epoch + 1)
+        valid_acc, valid_classes =  helpers.batch_evaluate(epoch_eval_dev, model, truth_table, ground_truth=ground_truth, device=device)
+        valid_acc = round(valid_acc, 2)
+        writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
         # Print training loss, accuracies, and time for every epoch
         print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc} ({train_classes}/{len(truth_table)}); Valid. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) === (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
