@@ -218,6 +218,8 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
     start = time.time()
     convergence_tracker = 0
 
+    csv_export = "Epoch;Loss;TrainAcc;ValidAcc;Time\n"
+
     if weighted_loss:
         loss_func = torch.nn.CrossEntropyLoss(weight=weights)
         ground_truth = 'index'
@@ -287,6 +289,7 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
 
         # Print training loss, accuracies, and time for every epoch
         print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc} ({train_classes}/{len(truth_table)}); Valid. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) === (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
+        csv_export = csv_export + f"{epoch+1};{round(training_loss, 4)};{train_acc};{valid_acc};{helpers.time_since(epoch_time)}\n".replace('.',',')
 
         epoch = epoch + 1
 
@@ -315,6 +318,10 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
         writer.add_scalar('epoch time', (time.time() - epoch_time) / 60, epoch)
         if save_intermediate_models and epoch % save_every == 0:
             torch.save(model.state_dict(), savepath[0:-4] + '_' + str(epoch) + '.pth')
+
+    csv_f = open(savepath[0:-4] + '.csv', 'w')
+    csv_f.write(csv_export)
+    csv_f.close()
 
 train_batch_dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
