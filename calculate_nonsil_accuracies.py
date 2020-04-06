@@ -44,11 +44,11 @@ for i in range(len(classes)):
     for j in range(len(classes)):
         cases = int(confusion_matrix[i][j])
         n_all = n_all + cases
-        if i > 1 and j > 1:
+        if i > 1:
             n_nosil = n_nosil + cases
         if i == j:
             n_correct = n_correct + cases
-            if i > 1 and j > 1:
+            if i > 1:
                 n_correct_no_sil = n_correct_no_sil + cases
 
 acc = round(n_correct / n_all * 100, 2)
