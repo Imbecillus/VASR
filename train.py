@@ -283,7 +283,7 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
         writer.add_scalar('epoch loss', training_loss, epoch + 1)
 
         # Evaluate on train and dev set
-        if perform_epoch_evaluation and epoch % eval_every == 0:
+        if perform_epoch_evaluation and ((epoch+1) % eval_every == 0 or epoch == 0):
             model.eval()
             train_acc, train_classes = helpers.batch_evaluate(epoch_eval_train, model, truth_table, ground_truth=ground_truth, device=device)
             train_acc = round(train_acc, 2)
