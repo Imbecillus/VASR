@@ -48,11 +48,13 @@ channels = 1
 device = torch.device("cpu")
 batch_size = 8
 save_intermediate_models = False
+perform_epoch_evaluation = False
 choose_model = 'simple_CNN'
 context = 0
 wd = 0.0
 weighted_loss = False
 save_every = 2
+eval_every = 1
 dropout_rate = 0.0
 learning_rate = 0.001
 lr_warmup = False
@@ -82,6 +84,10 @@ for arg in sys.argv:
         save_intermediate_models = True
         if len(arg) > 2:
             save_every = int(arg[2:])
+    if '-e' in arg:
+        perform_epoch_evaluation = True
+        if len(arg) > 2:
+            eval_every = int(arg[2:])
     if 'visemes=' in arg:
         viseme_set = arg[8:]
         if viseme_set == 'jeffersbarley':
@@ -277,19 +283,24 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
         writer.add_scalar('epoch loss', training_loss, epoch + 1)
 
         # Evaluate on train and dev set
-        model.eval()
-        train_acc, train_classes = helpers.batch_evaluate(epoch_eval_train, model, truth_table, ground_truth=ground_truth, device=device)
-        train_acc = round(train_acc, 2)
-        writer.add_scalar('train acc', train_acc, epoch + 1)
+        if perform_epoch_evaluation and epoch % eval_every == 0:
+            model.eval()
+            train_acc, train_classes = helpers.batch_evaluate(epoch_eval_train, model, truth_table, ground_truth=ground_truth, device=device)
+            train_acc = round(train_acc, 2)
+            writer.add_scalar('train acc', train_acc, epoch + 1)
 
-        valid_acc = ''
-        valid_acc, valid_classes =  helpers.batch_evaluate(epoch_eval_dev, model, truth_table, ground_truth=ground_truth, device=device)
-        valid_acc = round(valid_acc, 2)
-        writer.add_scalar('valid acc', valid_acc, epoch + 1)
+            valid_acc = ''
+            valid_acc, valid_classes =  helpers.batch_evaluate(epoch_eval_dev, model, truth_table, ground_truth=ground_truth, device=device)
+            valid_acc = round(valid_acc, 2)
+            writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
-        # Print training loss, accuracies, and time for every epoch
-        print(f"{epoch+1} == Err.: {round(training_loss, 4)}; Training Acc.: {train_acc} ({train_classes}/{len(truth_table)}); Valid. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) === (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
-        csv_export = csv_export + f"{epoch+1};{round(training_loss, 4)};{train_acc};{valid_acc};{helpers.time_since(epoch_time)}\n".replace('.',',')
+            # Print training loss, accuracies, and time for every epoch
+            print(f"{epoch+1} === Err.: {round(training_loss, 4)}; Training Acc.: {train_acc} ({train_classes}/{len(truth_table)}); Valid. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) === (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
+            csv_export = csv_export + f"{epoch+1};{round(training_loss, 4)};{train_acc};{valid_acc};{helpers.time_since(epoch_time)}\n".replace('.',',')
+        else:
+            # Print training loss and time for every epoch
+            print(f"{epoch+1} === Err.: {round(training_loss, 4)} === (Time: {helpers.time_since(start)} total, {helpers.time_since(epoch_time)} this epoch)", flush=True)
+            csv_export = csv_export + f"{epoch+1};{round(training_loss, 4)};;;{helpers.time_since(epoch_time)}\n".replace('.',',')
 
         epoch = epoch + 1
 
