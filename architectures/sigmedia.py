@@ -19,7 +19,7 @@ class residual_block(torch.nn.Module):
         self.ReLU = torch.nn.ReLU().to(device)
         self.conv2d_2 = torch.nn.Conv2d(filters, filters, kernel_size, stride=1, padding=1).to(device)
 
-        self.projection_shortcut = torch.nn.Conv2d(channels, filters, (1, 1), stride).to(device)
+        self.projection_shortcut = torch.nn.Conv2d(channels, filters, (1, 1), stride, bias=False).to(device)
 
     def forward(self, inputs):
         shortcut = inputs
