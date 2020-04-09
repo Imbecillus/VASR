@@ -334,9 +334,7 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
     csv_f.write(csv_export)
     csv_f.close()
 
-    print('\nValidating over the entire set...', flush=True)
-    acc, confusion_matrix = helpers.evaluate(validationset, model, truth_table, device=device, verbose=True)
-    print('Frame accuracy: ' + str(acc) + '\n')
+    return model
 
 train_batch_dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
@@ -355,13 +353,9 @@ if weighted_loss:
     weights = torch.tensor([weight_dict[c] for c in truth_table]).to(device)
     print(weight_dict, flush=True)
 
-fit(epochs, model, opt, train_batch_dl, dataset, validationset)
+model = fit(epochs, model, opt, train_batch_dl, dataset, validationset)
 
 # Save trained model
 torch.save(model.state_dict(), savepath)
 
 print('Finished Training\n', flush=True)
-
-print('\nValidating over the entire set...', flush=True)
-acc, confusion_matrix = helpers.evaluate(validationset, model, truth_table, device=device, verbose=True)
-print('Frame accuracy: ' + str(acc) + '\n')
