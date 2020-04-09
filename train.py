@@ -199,14 +199,14 @@ if not n_files is None:
 else:
     print('Training over the full trainset (' + str(len(dataset)) + ').')
 if validationset_path is not None:
-    print(f'Evaluating over 512 validationset frames each epoch. (set is {validationset_path}.)')
+    print(f'Evaluating over {epoch_evaluation_batch_size} validationset frames every {eval_every} epochs. (Set is {validationset_path}.)')
 if channels == 1:
     print('Converting to grayscale.')
 if truth_table == viseme_list.phonemes:
     print('Training for phonemes.')
 else:
     print('Training for visemes (' + viseme_set + ').')
-print('Exporting to ' + savepath + '\n', flush=True)
+print(f'Exporting to {savepath} every {save_every} epochs.\n', flush=True)
 
 # define training sequence
 def loss_batch(model, loss_func, prediction, yb, opt=None):
