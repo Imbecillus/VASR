@@ -37,6 +37,8 @@ for speaker in json_data.keys():
             if verbose:
                 print(seq, frame, export_dict[speaker][seq][frame])
 
+            export_dict[speaker][seq].pop(frame)
+
 # Export
 export_path = f"{dataset[0:-5]}_balanced.json"
 print(f'Saving to {export_path}')
