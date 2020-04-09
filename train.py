@@ -334,6 +334,10 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
     csv_f.write(csv_export)
     csv_f.close()
 
+    print('\nValidating over the entire set...', flush=True)
+    acc, confusion_matrix = helpers.evaluate(validationset, model, truth_table, device=device, verbose=True)
+    print('Frame accuracy: ' + str(acc) + '\n')
+
 train_batch_dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 opt = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=wd)
@@ -357,3 +361,7 @@ fit(epochs, model, opt, train_batch_dl, dataset, validationset)
 torch.save(model.state_dict(), savepath)
 
 print('Finished Training\n', flush=True)
+
+print('\nValidating over the entire set...', flush=True)
+acc, confusion_matrix = helpers.evaluate(validationset, model, truth_table, device=device, verbose=True)
+print('Frame accuracy: ' + str(acc) + '\n')
