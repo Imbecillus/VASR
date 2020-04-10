@@ -310,7 +310,7 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
             abort = True
         
         # Abort if loss hasn't changed for more than 3 epochs
-        if abs(last_error - training_loss) < 0.00000001:
+        if abs(last_error - training_loss) < 0.001:
             convergence_tracker = convergence_tracker + 1
             if convergence_tracker > 1:
                 print('Convergence. Stopping training.', flush=True)

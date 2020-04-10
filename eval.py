@@ -98,6 +98,9 @@ elif choose_model == 'DrResNet18':
 elif choose_model == 'ResNet10':
     from architectures import sigmedia as architecture
     model = architecture.Net(channels * (2 * context + 1), len(truth_table), 128, (8, 16, 24, 32), 0.0, device).to(device)
+elif choose_model == 'ResNet10_old':
+    from architectures import sigmedia_old as architecture
+    model = architecture.Net(channels * (2 * context + 1), len(truth_table), 128, (8, 16, 24, 32), 0.0, device).to(device)
 
 # VALIDATION
 testset = tcd.TCDTIMITDataset(validationset_path, data_transforms=data_transforms, n_files=n_files, viseme_set=viseme_set, context=context)
