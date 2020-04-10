@@ -30,14 +30,14 @@ for speaker in json_data.keys():
             if seq not in export_dict[speaker]:
                 export_dict[speaker][seq] = {}
 
-            frames = list(json_data[speaker][seq])
+            frames = list(json_data[speaker][seq].keys())
             frame = random.choice(frames)
             export_dict[speaker][seq][frame] = json_data[speaker][seq][frame]
 
             if verbose:
                 print(seq, frame, export_dict[speaker][seq][frame])
 
-            export_dict[speaker][seq].pop(frame)
+            json_data[speaker][seq].pop(frame)
 
 # Export
 export_path = f"{dataset[0:-5]}_balanced.json"
