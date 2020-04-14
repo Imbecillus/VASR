@@ -37,7 +37,7 @@ if second_pass:
             return data[frame_no][1]
 
     # On second pass, missing entries are replaced by the following viseme (since missing means, that the phoneme (e.g. /hh/) has no visual equivalent, meaning that the mouth is already forming the next viseme)
-    print('  At least on entry was missing, perform second pass.')
+    print('  At least one entry was missing, perform second pass.')
     for speaker_key in json_data:
         for sequence_key in json_data[speaker_key]:
             for frame in json_data[speaker_key][sequence_key]:
