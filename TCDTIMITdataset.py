@@ -110,6 +110,9 @@ class TCDTIMITDataset(Dataset):
 
         if path.endswith('.pt') or path.endswith('.pt36'):
             image = torch.load(path)
+            toPIL = torchvision.transforms.toPIL()
+            image = toPIL(image)
+            image = self.data_transforms(image)
             image = np.array(image)
             image = image / 255
 
@@ -151,8 +154,9 @@ class TCDTIMITDataset(Dataset):
 
         if self.context is not 0:
             # Split path into directory, filename (=framenumber) and extension
-            dirpath = path[0:path.rfind('/') + 1]
-            framenumber = int(path[path.rfind('/') + 1 : path.index('.')])
+            sep = os.path.sep
+            dirpath = path[0:path.rfind(sep) + 1]
+            framenumber = int(path[path.rfind(sep) + 1 : path.index('.')])
             ext = path[path.index('.'):]
 
             framenumbers = range(framenumber - self.context, framenumber + self.context + 1)
@@ -161,7 +165,6 @@ class TCDTIMITDataset(Dataset):
                 frames[n] = self.__get_image_in_sequence(dirpath, n, ext)
 
             shape = frames[framenumber].shape                                # save shape for the multi-channel image and padding frames
-            print(shape)
 
             # Create image with the regular dimensions but additional channels for the context in both directions
             image = np.empty([(1 + 2 * self.context) * shape[0], shape[1], shape[2]])
@@ -172,7 +175,6 @@ class TCDTIMITDataset(Dataset):
                     for n in framenumbers:
                         for c in range(shape[0]):
                             image[shape[0] * (n - start) + c][x][y] = frames[n][c][x][y]
-            print(image)
         else:
             image = self.__loadimage(path)
 
