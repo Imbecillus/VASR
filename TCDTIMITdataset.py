@@ -111,7 +111,7 @@ class TCDTIMITDataset(Dataset):
 
         if path.endswith('.pt') or path.endswith('.pt36'):
             image = torch.load(path)
-            toPIL = torchvision.transforms.toPIL()
+            toPIL = torchvision.transforms.ToPILImage()
             image = toPIL(image)
             image = self.data_transforms(image)
             image = np.array(image)
