@@ -57,14 +57,17 @@ def load_model():
     with open(config_path) as config:
         import viseme_list
 
+        context = 0
+        channels = 1
+
         line = config.readline()
         while line:
             if 'model=' in line:
-                choose_model = line[6:-1]
+                choose_model = line[6:].replace('\n', '')
             if 'import=' in line:
-                savepath = line[7:-1]
+                savepath = line[7:].replace('\n', '')
             if 'visemes=' in line:
-                viseme_set = line[8:-1]
+                viseme_set = line[8:].replace('\n', '')
                 if viseme_set == 'jeffersbarley':
                     t_t = viseme_list.visemes_jeffersbarley
                 elif viseme_set == 'lee':
@@ -77,17 +80,21 @@ def load_model():
                 if 'true' in line:
                     channels = 3
                     transforms = [
-                        torchvision.transforms.Resize((100,100))
+                        torchvision.transforms.Resize((36,36))
                     ]
                 else:
                     channels = 1
                     transforms = [
                             torchvision.transforms.Grayscale(),
-                            torchvision.transforms.Resize((100, 100))
+                            torchvision.transforms.Resize((36, 36))
                         ]
             if 'context=' in line:
-                context = int(line[8:-1])
+                context = int(line[8:].replace('\n', ''))
             line = config.readline()
+
+    print(f'Model={choose_model}; visemes={viseme_set}; channels={channels}; importing {savepath}')
+
+    model = None
 
     if choose_model == 'simple_CNN':
         from architectures import simple_CNN as architecture
@@ -97,21 +104,17 @@ def load_model():
         from architectures import lipreading_in_the_wild_convnet_unnormalized as architecture
     elif choose_model == 'RNN-ConvNet':
         from architectures import rnn_convnet as architecture
-    elif choose_model == 'ResNet18':
-        transforms.append(torchvision.transforms.Resize((256,256)))
-        model = torchvision.models.resnet18()
-        model.fc = nn.Linear(512, len(truth_table))
-    elif choose_model == 'DrResNet18':
-        transforms.append(torchvision.transforms.Resize((256,256)))
-        from architectures import ResNet18_dropout as architecture
-    elif choose_model == 'DrResNet18b':
-        transforms.append(transforms.Resize((256,256)))
-        model = torchvision.models.resnet18()
-        model.fc = nn.Sequential(nn.Dropout(0), nn.Linear(512, len(truth_table)))
+    elif choose_model == 'ResNet10':
+        from architectures import sigmedia as architecture
+        model = architecture.Net(channels * (2 * context + 1), len(t_t), 128, (8, 16, 24, 32), 0.0, device).to(device)
+    elif choose_model == 'ResNet10_old':
+        from architectures import sigmedia_old as architecture
+        model = architecture.Net(channels * (2 * context + 1), len(t_t), 128, (8, 16, 24, 32), 0.0, device).to(device)
 
     assert os.path.exists(savepath), 'Specified model file does not exist.'
 
-    model = architecture.Net(channels * (2 * context + 1), len(t_t))
+    if not model:
+        model = architecture.Net(channels * (2 * context + 1), len(t_t))
     model.load_state_dict(torch.load(savepath, map_location=device))
 
     transforms = list(transforms)
