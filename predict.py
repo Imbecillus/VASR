@@ -9,12 +9,21 @@ import PIL
 from PIL import Image
 from torch import nn
 
+if torch.cuda.is_available():
+    print("CUDA available", flush=True)
+    device = torch.device("cuda")
+else:
+    print("CUDA not available", flush=True)
+    device = torch.device("cpu")
+
 # Parsing command line
 export = False
 posteriors = False
+reduction = False
 config_path = None
 path = None
 map = None
+extension = '.jpg'
 
 for arg in sys.argv:
     if arg.startswith('--conf='):
@@ -29,6 +38,10 @@ for arg in sys.argv:
         map = arg[6:]
     elif arg.startswith('--post'):
         posteriors = True
+    elif arg.startswith('--reduce'):
+        reduction = True
+    elif arg.startswith('--ext='):
+        extension = arg[6:]
 
 assert map in [None, 'jeffers-to-phn', 'lee-to-phn'], 'Unknown mapping specified.'
 
@@ -47,18 +60,12 @@ else:
 def load_model():
     transforms = []
 
-    if torch.cuda.is_available():
-        print("CUDA available", flush=True)
-        device = torch.device("cuda")
-    else:
-        print("CUDA not available", flush=True)
-        device = torch.device("cpu")
-
     with open(config_path) as config:
         import viseme_list
 
         context = 0
         channels = 1
+        viseme_set = 'phonemes'
 
         line = config.readline()
         while line:
@@ -149,7 +156,7 @@ def predict(path):
     shape = xb.shape
     xb = xb.reshape((1, shape[0], shape[1], shape[2]))
 
-    prediction = model(xb)
+    prediction = model(xb.to(device))
     _, p = torch.max(prediction, 1)
 
     return truth_table[p]
@@ -166,10 +173,10 @@ def posts(path):
     
     return posts_from_image(image)
 
-def print_prediction(path, frame, prediction):
-    prediction = prediction.view(len(prediction[0]))
-
+def print_prediction(path, frame, prediction, last_frame = None):
     if posteriors and map is not None:
+        prediction = prediction.view(len(prediction[0]))
+
         # Perform mapping
         if map == 'jeffers-to-phn':
             from viseme_list import visemes_jeffersbarley
@@ -201,11 +208,14 @@ def print_prediction(path, frame, prediction):
 
         prediction = new_prediction
 
-
     if not frame:
         out_str = f"{path}: {prediction}"
     else:
-        out_str = f"{path}_{frame}: {prediction}"
+        out_str = f"  {frame}: {prediction}"
+
+    if last_frame is not None:
+        if prediction == last_frame:
+            return prediction
 
     if not export:
         print(out_str)
@@ -213,6 +223,8 @@ def print_prediction(path, frame, prediction):
         lines = open(export_path).readlines()
         lines.append(out_str + "\n")
         open(export_path, 'w').writelines(lines)
+
+    return prediction
 
 # Runtime
 model, transforms, truth_table = load_model()
@@ -225,13 +237,17 @@ if os.path.isfile(path):
     print_prediction(path, None, prediction)
 elif os.path.isdir(path):
     print(f'Generating predictions for sequence at {path}.')
-    n_frames = len([name for name in os.listdir(path) if name.endswith('.pt')])
+    n_frames = len([name for name in os.listdir(path) if name.endswith(extension)])
+    if reduction:
+        last_frame = '?'
+    else:
+        last_frame = None
     for i in range(n_frames):
         if posteriors:
-            prediction = posts(os.path.join(path, str(i + 1) + '.pt'))
+            prediction = posts(os.path.join(path, str(i + 1) + extension))
         else:
-            prediction = predict(os.path.join(path, str(i + 1) + '.pt'))
-        print_prediction(path, i + 1, prediction)
+            prediction = predict(os.path.join(path, str(i + 1) + extension))
+        last_frame = print_prediction(path, i + 1, prediction, last_frame)
 else:
     print(f'Error: {path} does not exist.')
     exit()
