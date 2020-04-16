@@ -175,6 +175,7 @@ def posts(path):
 def print_prediction(path, frame, prediction, last_frame = None):
     if posteriors and map is not None:
         prediction = prediction.view(len(prediction[0]))
+        prediction = prediction.tolist()
 
         # Perform mapping
         if map == 'jeffers-to-phn':
@@ -244,7 +245,7 @@ for path in paths:
     if os.path.isfile(path):
         print(f'Generating prediction for frame at {path}.')
         if posteriors:
-            prediction = posts(path).tolist()
+            prediction = posts(path).tolist
         else:
             prediction = predict(path)
         print_prediction(path, None, prediction)
@@ -257,7 +258,7 @@ for path in paths:
             last_frame = None
         for i in range(n_frames):
             if posteriors:
-                prediction = posts(os.path.join(path, str(i + 1) + extension)).tolist()
+                prediction = posts(os.path.join(path, str(i + 1) + extension))
             else:
                 prediction = predict(os.path.join(path, str(i + 1) + extension))
             last_frame = print_prediction(path, i + 1, prediction, last_frame)
