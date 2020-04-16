@@ -175,6 +175,8 @@ def posts(path):
 def print_prediction(path, frame, prediction, last_frame = None):
     if posteriors and map is not None:
         prediction = prediction.view(len(prediction[0]))
+        from torch.nn.functional import log_softmax
+        prediction = log_softmax(prediction)
         prediction = prediction.tolist()
 
         # Perform mapping
