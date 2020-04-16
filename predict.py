@@ -210,7 +210,7 @@ def print_prediction(path, frame, prediction, last_frame = None):
     if not frame:
         out_str = f"{path}: {prediction}"
     else:
-        out_str = f"{frame} {prediction} {frame * (100 / 29.97) * 100000}"
+        out_str = f"{frame} {prediction} {(frame - 1) * (100 / 29.97) * 100000}"
 
     if last_frame is not None:
         if prediction == last_frame:
