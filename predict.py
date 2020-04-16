@@ -244,7 +244,7 @@ for path in paths:
     if os.path.isfile(path):
         print(f'Generating prediction for frame at {path}.')
         if posteriors:
-            prediction = posts(path)
+            prediction = posts(path).tolist()
         else:
             prediction = predict(path)
         print_prediction(path, None, prediction)
@@ -257,7 +257,7 @@ for path in paths:
             last_frame = None
         for i in range(n_frames):
             if posteriors:
-                prediction = posts(os.path.join(path, str(i + 1) + extension))
+                prediction = posts(os.path.join(path, str(i + 1) + extension)).tolist()
             else:
                 prediction = predict(os.path.join(path, str(i + 1) + extension))
             last_frame = print_prediction(path, i + 1, prediction, last_frame)
