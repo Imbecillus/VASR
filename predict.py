@@ -21,18 +21,15 @@ export = False
 posteriors = False
 reduction = False
 config_path = None
-path = None
+paths = []
 map = None
 extension = '.jpg'
 
-for arg in sys.argv:
+for arg in sys.argv[1:]:
     if arg.startswith('--conf='):
         config_path = arg[7:]
-    elif arg.startswith('--path='):
-        path = arg[7:]
     elif arg.startswith('--export='):
         export_path = arg[9:]
-        open(export_path, 'w').write(f'%{path}\n')
         export = True
     elif arg.startswith('--map='):
         map = arg[6:]
@@ -42,6 +39,8 @@ for arg in sys.argv:
         reduction = True
     elif arg.startswith('--ext='):
         extension = arg[6:]
+    else:
+        paths.append(arg)
 
 assert map in [None, 'jeffers-to-phn', 'lee-to-phn'], 'Unknown mapping specified.'
 
@@ -211,7 +210,7 @@ def print_prediction(path, frame, prediction, last_frame = None):
     if not frame:
         out_str = f"{path}: {prediction}"
     else:
-        out_str = f"  {frame}: {prediction}"
+        out_str = f"{frame} {prediction} {frame * (100 / 29.97) * 100000}"
 
     if last_frame is not None:
         if prediction == last_frame:
@@ -220,36 +219,50 @@ def print_prediction(path, frame, prediction, last_frame = None):
     if not export:
         print(out_str)
     else:
-        lines = open(export_path).readlines()
+        lines = open(seq_export_path).readlines()
         lines.append(out_str + "\n")
-        open(export_path, 'w').writelines(lines)
+        open(seq_export_path, 'w').writelines(lines)
 
     return prediction
 
 # Runtime
 model, transforms, truth_table = load_model()
-if os.path.isfile(path):
-    print(f'Generating prediction for frame at {path}.')
-    if posteriors:
-        prediction = posts(path)
+for path in paths:
+    if '*' in export_path:
+        # Wildcard in export_path: Replace with sequence ID
+        dir_path = path.split('/') if '/' in path else path.split('\\')
+        db_start = dir_path.index('volunteers')
+        speaker = dir_path[db_start + 1]
+        sequence = dir_path[db_start + 4]
+        seq_export_path = export_path.replace('*', f'{speaker}_{sequence}')
     else:
-        prediction = predict(path)
-    print_prediction(path, None, prediction)
-elif os.path.isdir(path):
-    print(f'Generating predictions for sequence at {path}.')
-    n_frames = len([name for name in os.listdir(path) if name.endswith(extension)])
-    if reduction:
-        last_frame = '?'
-    else:
-        last_frame = None
-    for i in range(n_frames):
+        seq_export_path = export_path
+
+    
+    open(seq_export_path, 'w').write(f'%{path}\n')
+
+    if os.path.isfile(path):
+        print(f'Generating prediction for frame at {path}.')
         if posteriors:
-            prediction = posts(os.path.join(path, str(i + 1) + extension))
+            prediction = posts(path)
         else:
-            prediction = predict(os.path.join(path, str(i + 1) + extension))
-        last_frame = print_prediction(path, i + 1, prediction, last_frame)
-else:
-    print(f'Error: {path} does not exist.')
-    exit()
+            prediction = predict(path)
+        print_prediction(path, None, prediction)
+    elif os.path.isdir(path):
+        print(f'Generating predictions for sequence at {path}.')
+        n_frames = len([name for name in os.listdir(path) if name.endswith(extension)])
+        if reduction:
+            last_frame = '?'
+        else:
+            last_frame = None
+        for i in range(n_frames):
+            if posteriors:
+                prediction = posts(os.path.join(path, str(i + 1) + extension))
+            else:
+                prediction = predict(os.path.join(path, str(i + 1) + extension))
+            last_frame = print_prediction(path, i + 1, prediction, last_frame)
+    else:
+        print(f'Error: {path} does not exist.')
+        exit()
 
 print('Done.')
