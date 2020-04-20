@@ -8,6 +8,7 @@ import imageio
 import PIL
 from PIL import Image
 from torch import nn
+from torch.nn.functional import log_softmax
 
 if torch.cuda.is_available():
     print("CUDA available", flush=True)
@@ -20,6 +21,8 @@ else:
 export = False
 posteriors = False
 reduction = False
+do_logsoftmax = False
+csv = False
 config_path = None
 paths = []
 map = None
@@ -37,6 +40,10 @@ for arg in sys.argv[1:]:
         posteriors = True
     elif arg.startswith('--reduce'):
         reduction = True
+    elif arg.startswith('--csv'):
+        csv = True
+    elif arg.startswith('--logsoftmax'):
+        do_logsoftmax = True
     elif arg.startswith('--ext='):
         extension = arg[6:]
     else:
@@ -80,6 +87,8 @@ def load_model():
                     t_t = viseme_list.visemes_lee
                 elif viseme_set == 'neti':
                     t_t = viseme_list.visemes_neti
+                elif viseme_set == 'phonemes_old':
+                    t_t = viseme_list.phonemes_old
                 else:
                     t_t = viseme_list.phonemes
             if 'color=' in line:
@@ -120,7 +129,7 @@ def load_model():
     assert os.path.exists(savepath), 'Specified model file does not exist.'
 
     if not model:
-        model = architecture.Net(channels * (2 * context + 1), len(t_t))
+        model = architecture.Net(channels * (2 * context + 1), len(t_t)).to(device)
     model.load_state_dict(torch.load(savepath, map_location=device))
 
     transforms = list(transforms)
@@ -144,7 +153,7 @@ def load_image(path):
     else:
         image = imageio.imread(path)                    # Read image into PIL format
         image = Image.fromarray(image)
-        image = transforms(image)             # Apply transforms
+        image = transforms(image)                       # Apply transforms
         image = np.array(image)                         # Convert image into numpy array
         
     return image
@@ -165,12 +174,17 @@ def posts_from_image(image):
     shape = xb.shape
     xb = xb.reshape((1, shape[0], shape[1], shape[2]))
 
-    return model(xb)
+    return model(xb.to(device))
 
 def posts(path):
     image = load_image(path)
-    
-    return posts_from_image(image)
+
+    posts = posts_from_image(image).view(-1)
+
+    if do_logsoftmax:
+        posts = log_softmax(posts, 0)
+
+    return posts
 
 def print_prediction(path, frame, prediction, last_frame = None):
     if posteriors and map is not None:
@@ -213,7 +227,15 @@ def print_prediction(path, frame, prediction, last_frame = None):
     if not frame:
         out_str = f"{path}: {prediction}"
     else:
-        out_str = f"{frame} {prediction} {(frame - 1) * (100 / 29.97) * 100000}"
+        if not csv:
+            out_str = f"{frame} {prediction} {(frame - 1) * (100 / 29.97) * 100000}"
+        else:
+            out_str = f'{frame};'
+            prediction = prediction.view(-1)
+            prediction = prediction.tolist()
+            for i in range(len(prediction)):
+                out_str = out_str + f'{prediction[i]};'
+            out_str = out_str[0:-1].replace('.', ',')
 
     if last_frame is not None:
         if prediction == last_frame:
@@ -226,7 +248,7 @@ def print_prediction(path, frame, prediction, last_frame = None):
         lines.append(out_str + "\n")
         open(seq_export_path, 'w').writelines(lines)
 
-    return prediction
+    return None
 
 # Runtime
 model, transforms, truth_table = load_model()

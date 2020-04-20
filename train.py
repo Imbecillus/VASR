@@ -163,6 +163,9 @@ elif choose_model == 'DrResNet18':
 elif choose_model == 'ResNet10':
     from architectures import sigmedia as architecture
     model = architecture.Net(channels * (2 * context + 1), len(truth_table), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
+elif choose_model == 'DrResNet10':
+    from architectures import sigmedia_dropout as architecture
+    model = architecture.Net(channels * (2 * context + 1), len(truth_table), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
 
 if not model:
     # channels = color channels of frame + color channels of the context frames
