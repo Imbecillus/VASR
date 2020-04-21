@@ -18,6 +18,8 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
     import torch
     from torch.utils.data import DataLoader
 
+    batch_size = 1
+
     # Load everything onto the same device
     if device == None:
         if torch.cuda.is_available():
@@ -27,14 +29,14 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
 
     model.to(device)
 
-    valid_dl = DataLoader(validationset, batch_size=2048, shuffle=True)
+    valid_dl = DataLoader(validationset, batch_size=batch_size, shuffle=True)
 
     count_all = 0
     count_correct = 0
     confusion_matrix = {}
     certainty = {}
 
-    step = int(0.1 * (len(valid_dl) * 2048))
+    step = int(0.1 * (len(valid_dl) * batch_size))
 
     for xb, yb in valid_dl:
         xb = xb.to(device)
@@ -51,9 +53,9 @@ def evaluate(validationset, model, truth_table, ground_truth='one-hot', device=N
             if verbose:
                 if count_all % step == 0:
                     if count_all != len(valid_dl):
-                        print(round(count_all / (2048 * len(valid_dl)), 2) * 100, '% :', round(100 * (count_correct / count_all), 2), '% Acc', flush=True)
+                        print(round(count_all / (batch_size * len(valid_dl)), 2) * 100, '% :', round(100 * (count_correct / count_all), 2), '% Acc', flush=True)
                     else:
-                        print(round(count_all / (2048 * len(valid_dl)), 2) * 100)
+                        print(round(count_all / (batch_size * len(valid_dl)), 2) * 100)
 
             # Get index of the likeliest prediction
             _, pred = torch.max(prediction_vector, 0)
