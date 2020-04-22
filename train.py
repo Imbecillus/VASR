@@ -292,8 +292,7 @@ def fit(epochs, model, opt, train_dl, dataset, validationset):
             train_acc = round(train_acc, 2)
             writer.add_scalar('train acc', train_acc, epoch + 1)
 
-            valid_acc = ''
-            valid_acc, valid_classes =  helpers.batch_evaluate(epoch_eval_dev, model, truth_table, ground_truth=ground_truth, device=device)
+            valid_acc, valid_classes = helpers.batch_evaluate(epoch_eval_dev, model, truth_table, ground_truth=ground_truth, device=device)
             valid_acc = round(valid_acc, 2)
             writer.add_scalar('valid acc', valid_acc, epoch + 1)
 

@@ -148,6 +148,70 @@ def batch_evaluate(batch, model, truth_table, ground_truth='one-hot', device=Non
             
     return 100 * (count_correct / count_all), len(recognized_classes)
 
+def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=None):
+    import torch
+
+    count_all = 0
+    count_correct = 0
+    recognized_classes = []
+
+    inputs = batch[0].squeeze(dim=0)
+    labels = batch[1].squeeze(dim=0)
+    predictions = model(inputs.to(device))
+
+    for i in range(len(inputs)):
+        count_all += 1
+
+        _, pred = torch.max(predictions[i], 0)
+
+        if ground_truth != 'index':
+            _, truth = torch.max(labels[i], 1)
+        else:
+            truth = labels[i]
+
+        if pred == truth:
+            count_correct += 1
+            truth_phoneme = truth_table[truth]
+            if truth_phoneme not in recognized_classes:           # Add phoneme/viseme to list of classes that were recognized
+                 recognized_classes.append(truth_phoneme)
+
+    return count_correct, count_all, len(recognized_classes)
+
+def lstm_evaluate(model, set, truth_table, ground_truth = 'index', device=None, limit=None):
+    import torch
+    from torch.utils.data import DataLoader
+
+    # Load everything onto the same device
+    if device == None:
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+        else:
+            device = torch.device('cpu')
+
+    count_all = 0
+    count_correct = 0
+    recognized_classes = []
+
+    dl = DataLoader(set, batch_size=1)
+    dl_iter = iter(dl)
+
+    for batch in dl_iter:
+        correct, length, classes = evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=device)
+        recognized_classes.append(classes)
+        count_all += length
+        count_correct += correct
+        if limit is not None:
+            if count_all > limit:
+                break
+
+    n = len(recognized_classes)
+    total = 0
+    for c in recognized_classes:
+        total += c
+    recognized_classes = total / n
+
+    return 100 * (count_correct / count_all), recognized_classes
+
 def load_batch(dataset, size):
     from torch.utils.data import DataLoader
     
@@ -155,6 +219,19 @@ def load_batch(dataset, size):
     dl_iter = iter(dl)
 
     return next(dl_iter)
+
+def load_lstm_batch(dataset, size):
+    import torch
+    from torch.utils.data import DataLoader
+
+    dl = DataLoader(dataset)
+    dl_iter = iter(dl)
+
+    batch = next(dl_iter)
+    batch[0] = batch[0].squeeze(dim=0)
+    batch[1] = batch[1].squeeze(dim=0)
+
+    return batch
 
 def print_confusion_matrix(confusion_dict, truth_table, savepath):
     confusion_matrix = [[0 for x in range(len(truth_table))] for y in range(len(truth_table))]      # Initialize NxN matrix filled with zeros with N=length of truth table

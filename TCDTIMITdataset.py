@@ -188,6 +188,7 @@ class TCDTIMITDataset(Dataset):
 
         if self.sequences:
             sequence = []
+            labels = []
             for path, truth in self.data[number]:
                 image = self.__loadimage(path)
                 if self.truth == 'one-hot':
@@ -196,7 +197,9 @@ class TCDTIMITDataset(Dataset):
                 elif self.truth == 'index':
                     truth_tensor = torch.tensor(self.truth_table.index(truth), dtype=torch.long)    # Create a tensor containing only the index of the ground truth.
 
-                sequence.append([image, truth_tensor])                  # Add image-truth-pair to sequence list
-            return sequence
+                # Add image-truth-pair to lists
+                sequence.append(image)
+                labels.append(truth_tensor)
+            return torch.tensor(sequence), torch.tensor(labels)
         else:
             return self.__get_image_context_and_truth(number)
