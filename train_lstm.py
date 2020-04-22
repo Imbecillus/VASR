@@ -213,6 +213,10 @@ while not abort:
 
         print(f'Train. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) // ', end='', flush=True)
 
+        csv_export = csv_export + f"{epoch+1};{round(training_loss, 4)};{train_acc};{valid_acc};{helpers.time_since(epoch_time)}\n".replace('.',',')
+    else:
+        csv_export = csv_export + f"{epoch+1};{round(training_loss, 4)};;;{helpers.time_since(epoch_time)}\n".replace('.',',')
+
     # Abort if max epochs have been reached
     if epoch == epochs:
         print('Max epochs have been reached. Stopping training.')
@@ -240,6 +244,10 @@ while not abort:
 
     if save_intermediate_models and epoch % save_every == 0:
         torch.save(model.state_dict(), savepath[0:-4] + '_' + str(epoch) + '.pth')
+    
+    csv_f = open(savepath[0:-4] + '.csv', 'w')
+    csv_f.write(csv_export)
+    csv_f.close()
 
     epoch = epoch + 1
 
