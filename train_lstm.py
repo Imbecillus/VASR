@@ -162,6 +162,7 @@ step = 1
 epoch = 1 + offset
 last_error = 1000
 abort = False
+csv_export = "Epoch;Loss;TrainAcc;ValidAcc;Time\n"
 
 while not abort:
     epoch_time = time.time()

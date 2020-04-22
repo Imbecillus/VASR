@@ -78,10 +78,14 @@ class Net(nn.Module):
 
         self.hidden2tag = nn.Linear(hidden_dim, target_dim)
 
-    def forward(self, sequence):
-        embeds = self.embedding_layer(sequence)
-        embeds = torch.squeeze(embeds, dim=3).transpose(1, 2)
-        lstm_out, _ = self.lstm(embeds)
-        tag_scores = self.hidden2tag(lstm_out.squeeze())
-        #tag_scores = F.log_softmax(tag_space)
-        return tag_scores
+    def forward(self, flow):
+        try:
+            flow = self.embedding_layer(flow)
+            flow = torch.squeeze(flow, dim=3).transpose(1, 2)
+            flow, _ = self.lstm(flow)
+            flow = self.hidden2tag(flow.squeeze())
+            #tag_scores = F.log_softmax(tag_space)
+            return flow
+        except:
+            print(flow.shape)
+            print(flow)
