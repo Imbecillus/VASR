@@ -86,8 +86,8 @@ class TCDTIMITDataset(Dataset):
                         path = path.replace('\\', os.sep)
                         if os.path.exists(path):
                             sequence_data.append(json_data[speaker_key][seq_key][frame_number])
-
-                    data.append(sequence_data)
+                    if not len(sequence_data) == 0:
+                        data.append(sequence_data)
         
         # randomly select n_files frames to keep in data
         if n_files is not None:
