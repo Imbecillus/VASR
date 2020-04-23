@@ -151,9 +151,26 @@ else:
         validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, sequences=True, context=context)
 print('done.', flush=True)
 
+# Calculate weights
+if weighted_loss:
+    print('Calculating weights...', flush=True, end=' ')
+    import show_distribution
+    distribution = show_distribution.count_distribution(dataset_path)
+    top_class, _ = show_distribution.find_top_class(distribution)
+    weight_dict = show_distribution.proportion_weight(distribution, top_class)
+    for c in truth_table:
+        if c not in weight_dict.keys():
+            weight_dict[c] = 0
+    weights = torch.tensor([weight_dict[c] for c in truth_table]).to(device)
+    print(weight_dict, flush=True)
+    print('done.')
+
 print('Preparing training...', flush=True, end=' ')
 train_dl = DataLoader(dataset, shuffle=True)
-loss_function = nn.CrossEntropyLoss()
+if weighted_loss:
+    loss_function = nn.CrossEntropyLoss(weight=weights)
+else:
+    loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=wd)
 print('done.', flush=True)
 
@@ -198,7 +215,7 @@ while not abort:
     writer.add_scalar('epoch loss', training_loss, epoch)
     print(f'{round(training_loss, 4)} // ', end='', flush=True)
 
-    if perform_epoch_evaluation and ((epoch+1) % eval_every == 0 or epoch == 0):
+    if perform_epoch_evaluation and ((epoch) % eval_every == 0 or epoch == 1):
         model.eval()
 
         train_acc, train_classes = helpers.lstm_evaluate(model, dataset, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit)
@@ -212,7 +229,7 @@ while not abort:
         valid_acc = round(valid_acc, 2)
         writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
-        print(f'Train. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) // ', end='', flush=True)
+        print(f'Valid. Acc.: {valid_acc} ({valid_classes}/{len(truth_table)}) // ', end='', flush=True)
 
         csv_export = csv_export + f"{epoch+1};{round(training_loss, 4)};{train_acc};{valid_acc};{helpers.time_since(epoch_time)}\n".replace('.',',')
     else:
