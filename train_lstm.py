@@ -276,7 +276,12 @@ print(f'Model saved to {savepath}.\n\n')
 
 print('Evaluating over full validation set...', flush=True)
 
-acc, classes = helpers.lstm_evaluate(model, validationset, truth_table, 'index', device)
+acc, classes, confusion_dict = helpers.lstm_evaluate(model, validationset, truth_table, 'index', device, print_confusion_matrix=True)
+helpers.print_confusion_matrix(confusion_dict, truth_table, savepath)
 
 print(f'Accuracy: {round(acc,2)}%')
-print(f'{round(classes,2)}/{len(truth_table)} recognized on average over all sequences.')
+print(f'{round(classes,2)}/{len(truth_table)} recognized.')
+print('Confusion matrix has been exported.')
+print('Evaluation finished.')
+
+print('All done. :)')
