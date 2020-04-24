@@ -68,13 +68,13 @@ class ResNet(torch.nn.Module):
         return flow
 
 class Net(nn.Module):
-    def __init__(self, embedding_dim, hidden_dim, target_dim, num_layers, embedding_layer):
+    def __init__(self, embedding_dim, hidden_dim, target_dim, num_layers, embedding_layer, bilinear = False):
         super(Net, self).__init__()
         self.hidden_dim = hidden_dim
 
         self.embedding_layer = embedding_layer
 
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, bilinear=bilinear)
 
         self.hidden2tag = nn.Linear(hidden_dim, target_dim)
 
