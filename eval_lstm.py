@@ -44,8 +44,6 @@ else:
 # Parse command line arguments
 for arg in sys.argv:
     if 'import=' in arg:
-        importpath = arg[7:]
-    if 'export=' in arg:
         savepath = arg[7:]
     if 'visemes=' in arg:
         viseme_set = arg[8:]
@@ -81,7 +79,7 @@ print('Loading model...', flush=True, end=' ')
 from architectures import lstm
 embedding_layer = lstm.ResNet(channels * (2 * context + 1), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
 model = lstm.Net(128, 128, len(truth_table), 1, embedding_layer).to(device)
-model.load_state_dict(torch.load(importpath, map_location=device))
+model.load_state_dict(torch.load(savepath, map_location=device))
 print('done.', flush=True)
 
 print('Loading dataset...', flush=True, end=' ')
@@ -93,7 +91,7 @@ print('done.', flush=True)
 
 print('Evaluating over full validation set...', flush=True)
 
-acc, classes, confusion_dict = helpers.lstm_evaluate(model, validationset, truth_table, 'index', device, print_confusion_matrix=True)
+acc, classes, confusion_dict = helpers.lstm_evaluate(model, dataset, truth_table, 'index', device, print_confusion_matrix=True)
 helpers.print_confusion_matrix(confusion_dict, truth_table, savepath)
 
 print(f'Accuracy: {round(acc,2)}%')
