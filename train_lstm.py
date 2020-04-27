@@ -68,7 +68,7 @@ for arg in sys.argv:
     if 'export=' in arg:
         savepath = arg[7:]
     if 'lstm_layers=' in arg:
-        lstm_layers = int(arg[6:])
+        lstm_layers = int(arg[12:])
     if '-b' in arg:
         bilinear = True
     if '-i' in arg:
