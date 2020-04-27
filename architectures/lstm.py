@@ -74,7 +74,7 @@ class Net(nn.Module):
 
         self.embedding_layer = embedding_layer
 
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, bidirectional=bilinear)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, bidirectional=bidirectional)
 
         directions = 1 if not bidirectional else 2
         self.hidden2tag = nn.Linear(hidden_dim * directions, target_dim)
