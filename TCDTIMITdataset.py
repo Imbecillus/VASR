@@ -140,12 +140,13 @@ class TCDTIMITDataset(Dataset):
                 # n seems to be higher than last frame; reduce by one until file is found
                 return self.__get_image_in_sequence(dir_path, n - 1, extension)
 
-    def __get_image_context_and_truth(self, number):
+    def __get_image_context_and_truth(self, entry):
         """
         Gets truth_tensor for the specified image and appends context frames, if requested.
         """
 
-        path, truth = self.data[number]
+        # Unpack given database entry to get path and truth
+        path, truth = entry
 
         if self.truth == 'one-hot':
             truth_tensor = torch.zeros(len(self.truth_table))           # Create a n-dimensional tensor...
@@ -189,17 +190,15 @@ class TCDTIMITDataset(Dataset):
         if self.sequences:
             sequence = []
             labels = []
-            for path, truth in self.data[number]:
-                image = self.__loadimage(path)
-                if self.truth == 'one-hot':
-                    truth_tensor = torch.zeros(len(self.truth_table))           # Create a n-dimensional tensor...
-                    truth_tensor[self.truth_table.index(truth)] = 1             # ...and set index of ground truth to 1.
-                elif self.truth == 'index':
-                    truth_tensor = torch.tensor(self.truth_table.index(truth), dtype=torch.long)    # Create a tensor containing only the index of the ground truth.
+
+            for i in range(len(self.data[number])):
+                image, truth_tensor = self.__get_image_context_and_truth(self.data[number][i])
 
                 # Add image-truth-pair to lists
-                sequence.append(image)
-                labels.append(truth_tensor)
+                sequence.append(image.tolist())
+                labels.append(truth_tensor.tolist())
+
             return torch.tensor(sequence), torch.tensor(labels)
         else:
-            return self.__get_image_context_and_truth(number)
+            return self.__get_image_context_and_truth(self.data[number])
+            
