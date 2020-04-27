@@ -151,7 +151,7 @@ if weighted_loss:
     if validationset_path is not None:
         validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, sequences=True, context=context, truth='index')
 else:
-    dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True)
+    dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True, truth='index')
     if validationset_path is not None:
         validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, sequences=True, context=context)
 print('done.', flush=True)
