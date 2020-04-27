@@ -32,7 +32,7 @@ savepath = './simple_cnn.pth'
 cont_train = False
 viseme_set = None
 channels = 1
-bilinear = False
+bidirectional = False
 lstm_layers = 1
 device = torch.device("cpu")
 batch_size = 8
@@ -70,7 +70,7 @@ for arg in sys.argv:
     if 'lstm_layers=' in arg:
         lstm_layers = int(arg[12:])
     if '-b' in arg:
-        bilinear = True
+        bidirectional = True
     if '-i' in arg:
         save_intermediate_models = True
         if len(arg) > 2:
@@ -136,7 +136,7 @@ model = None
 print('Loading model...', flush=True, end=' ')
 from architectures import lstm
 embedding_layer = lstm.ResNet(channels * (2 * context + 1), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
-model = lstm.Net(128, 128, len(truth_table), lstm_layers, embedding_layer, bilinear=bilinear).to(device)
+model = lstm.Net(128, 128, len(truth_table), lstm_layers, embedding_layer, bidirectional=bidirectional).to(device)
 print('done.', flush=True)
 
 if cont_train:
