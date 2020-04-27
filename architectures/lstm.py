@@ -86,6 +86,7 @@ class Net(nn.Module):
             flow = self.hidden2tag(flow.squeeze())
             #tag_scores = F.log_softmax(tag_space)
             return flow
-        except:
+        except BaseException as e:
             print(flow.shape)
             print(flow)
+            print(e)
