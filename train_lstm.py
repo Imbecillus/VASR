@@ -49,7 +49,8 @@ lr_warmup = False
 lr_pt = None
 threshold = None
 offset = 0
-epoch_evaluation_size_limit = 2048
+epoch_evaluation_size_limit = None
+quick_epoch_evaluation = False
 
 if torch.cuda.is_available():
 	print("CUDA available", flush=True)
@@ -93,6 +94,8 @@ for arg in sys.argv:
         dataset_path = arg[8:]
     if 'devset=' in arg:
         validationset_path = arg[7:]
+    if '-q' in arg:
+        quick_epoch_evaluation = True
     if 'epoch_eval_count=' in arg:
         epoch_evaluation_batch_size = int(arg[17:])
     if 'epochs=' in arg:
@@ -146,14 +149,14 @@ if cont_train:
     print('done.', flush=True)
 
 print('Loading dataset...', flush=True, end=' ')
-if weighted_loss:
-    dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True, truth='index')
-    if validationset_path is not None:
-        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, sequences=True, context=context, truth='index')
+dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True, truth='index')
+validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, sequences=True, context=context, truth='index')
+if quick_epoch_evaluation:
+    dataset_epochval = tcd.TCDTIMITDataset(dataset_path.replace('.json', '_lstmbalanced.json'), n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True, truth='index')
+    validationset_epochval = tcd.TCDTIMITDataset(dataset_path.replace('.json', '_lstmbalanced.json'), n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True, truth='index')
 else:
-    dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True, truth='index')
-    if validationset_path is not None:
-        validationset = tcd.TCDTIMITDataset(validationset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, sequences=True, context=context, truth='index')
+    dataset_epochval = dataset
+    validationset_epochval = validationset
 print('done.', flush=True)
 
 # Calculate weights
@@ -223,14 +226,14 @@ while not abort:
     if perform_epoch_evaluation and ((epoch) % eval_every == 0 or epoch == 1):
         model.eval()
 
-        train_acc, train_classes = helpers.lstm_evaluate(model, dataset, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit)
+        train_acc, train_classes = helpers.lstm_evaluate(model, dataset_epochval, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit)
         train_acc = round(train_acc, 2)
         writer.add_scalar('train acc', train_acc, epoch + 1)
 
         print(f'Train. Acc.: {train_acc} ({train_classes}/{len(truth_table)}) // ', end='', flush=True)
 
         valid_acc = ''
-        valid_acc, valid_classes =  helpers.lstm_evaluate(model, validationset, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit)
+        valid_acc, valid_classes =  helpers.lstm_evaluate(model, validationset_epochval, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit)
         valid_acc = round(valid_acc, 2)
         writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
