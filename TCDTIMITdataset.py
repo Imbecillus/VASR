@@ -202,3 +202,39 @@ class TCDTIMITDataset(Dataset):
         else:
             return self.__get_image_context_and_truth(self.data[number])
             
+class PreFeatsDataset(TCDTIMITDataset):
+    def __init__(self,
+                 dataset,
+                 n_files=None,
+                 viseme_set=None,
+                 sequences=False,
+                 truth='one-hot',
+                 context=0):
+
+        super(PreFeatsDataset, self).__init__(dataset, n_files=n_files, viseme_set=viseme_set, sequences=sequences, truth=truth, context=context)
+
+    def __get_feats_and_truth(self, entry):
+        path, truth = entry
+        path, _ = path.split('.')
+        path = path + '_feats.pt'
+
+        if self.truth == 'one-hot':
+            truth_tensor = torch.zeros(len(self.truth_table))           # Create a n-dimensional tensor...
+            truth_tensor[self.truth_table.index(truth)] = 1             # ...and set index of ground truth to 1.
+        else:
+            truth_tensor = torch.tensor(self.truth_table.index(truth), dtype=torch.long)    # Create a tensor containing only the index of the ground truth.
+
+        if self.context is not 0:
+            raise NotImplementedError
+        else:
+            return torch.load(path), truth_tensor
+
+    def __getitem__(self, number):
+        """
+        Loads dataset element with index number 'number'.
+        """
+
+        if self.sequences:
+            raise NotImplementedError
+        else:
+            return self.__get_feats_and_truth(self.data[number])
