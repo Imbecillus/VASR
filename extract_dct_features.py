@@ -102,12 +102,14 @@ if verbose:
 
 # Calculate Deltas
 if deltas >= 1:
-    print('Deltas:      ', end='')
+    if verbose:
+        print('Deltas:      ', end='')
     seq_deltas = calc_deltas(seq_feats)
 
 # Calculate Delta-deltas
 if deltas >= 2:
-    print('Deltadeltas: ', end='')
+    if verbose:
+        print('Deltadeltas: ', end='')
     seq_deltadeltas = calc_deltas(seq_deltas)
 
 # Save
