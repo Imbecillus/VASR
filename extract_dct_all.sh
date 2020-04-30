@@ -3,15 +3,25 @@ path=$1
 echo "Number of features: $2"
 n=$2
 
-$deltas=""
+deltas=""
 if [ $3 = "1" ]
+then
     echo "Appending deltas"
-    $deltas="-d"
+    deltas="-d"
 fi
 
 if [ $3 = "2" ]
+then
     echo "Appending deltas + delta-deltas"
-    $deltas="-dd"
+    deltas="-dd"
 fi
 
-echo "Command: pyfile.py $path $n $deltas"
+echo "Command: python extract_dct_features.py $path/[SPEAKER]/Clips/ROI/[SEQUENCE]/ $n $deltas"
+
+for d in $path*M/ $path*F/
+do
+    for seq in ${d}Clips/ROI/*/
+    do
+        python extract_dct_features.py $seq $n $deltas -v
+    done
+done
