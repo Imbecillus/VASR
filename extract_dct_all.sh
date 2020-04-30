@@ -22,6 +22,6 @@ for d in $path*M/ $path*F/
 do
     for seq in ${d}Clips/ROI/*/
     do
-        python extract_dct_features.py $seq $n $deltas -v
+        python extract_dct_features.py $seq $n $deltas
     done
 done
