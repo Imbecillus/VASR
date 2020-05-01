@@ -139,7 +139,10 @@ writer = SummaryWriter(os.path.join('runs', os.path.basename(savepath[:-4])))
 model = None
 
 print('Loading model...', flush=True, end=' ')
-model = torch.nn.LSTM(45, 128, lstm_layers, bidirectional=bidirectional).to(device)
+model = torch.nn.Sequential(
+    torch.nn.LSTM(45, 128, lstm_layers, bidirectional=bidirectional),
+    torch.nn.Linear(128, len(truth_table))
+).to(device)
 print('done.', flush=True)
 
 if cont_train:
