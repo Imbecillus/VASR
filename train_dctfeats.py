@@ -139,9 +139,7 @@ writer = SummaryWriter(os.path.join('runs', os.path.basename(savepath[:-4])))
 model = None
 
 print('Loading model...', flush=True, end=' ')
-from architectures import lstm
-embedding_layer = torch.nn.Linear((1 + 2*context) * 45, 128)
-model = lstm.Net(128, 128, len(truth_table), lstm_layers, embedding_layer, bidirectional=bidirectional).to(device)
+model = torch.nn.LSTM(45, 128, lstm_layers, bidirectional=bidirectional).to(device)
 print('done.', flush=True)
 
 if cont_train:
