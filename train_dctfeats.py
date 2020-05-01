@@ -140,8 +140,7 @@ model = None
 
 print('Loading model...', flush=True, end=' ')
 model = torch.nn.Sequential(
-    torch.nn.LSTM(45, 128, lstm_layers, bidirectional=bidirectional),
-    torch.nn.Linear(128, len(truth_table))
+    torch.nn.LSTM(45, len(truth_table), lstm_layers, bidirectional=bidirectional)
 ).to(device)
 print('done.', flush=True)
 
