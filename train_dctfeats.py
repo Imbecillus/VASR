@@ -200,7 +200,7 @@ while not abort:
 
     for xb, yb in train_dl:
         xb = xb.transpose(0,1)                              # Reorder for LSTM input dimensions
-        prediction = model(xb.squeeze(dim=0).to(device)).squeeze()
+        prediction, _ = model(xb.squeeze(dim=0).to(device)).squeeze()
         yb = yb.squeeze()
         loss = loss_function(prediction, yb.to(device))
 
