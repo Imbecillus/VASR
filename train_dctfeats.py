@@ -199,7 +199,7 @@ while not abort:
     batchstart = time.time()
 
     for xb, yb in train_dl:
-        xb = xb.view(xb.shape[0], 1, xb.shape[1])           # Add batch dimension
+        xb = xb.transpose(0,1)                              # Reorder for LSTM input dimensions
         prediction = model(xb.squeeze(dim=0).to(device))
         yb = yb.squeeze()
         loss = loss_function(prediction, yb.to(device))
