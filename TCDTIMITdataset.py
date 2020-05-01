@@ -235,6 +235,17 @@ class PreFeatsDataset(TCDTIMITDataset):
         """
 
         if self.sequences:
-            raise NotImplementedError
+            sequence = []
+            labels = []
+
+            for i in range(len(self.data[number])):
+                feat, truth_tensor = self.__get_feats_and_truth(self.data[number][i])
+
+                # Add image-truth-pair to lists
+                sequence.append(feat)
+                labels.append(truth_tensor.tolist())
+
+            return torch.tensor(sequence), torch.tensor(labels)
+
         else:
             return self.__get_feats_and_truth(self.data[number])
