@@ -155,7 +155,7 @@ dataset = tcd.PreFeatsDataset(dataset_path, n_files=n_files, viseme_set=viseme_s
 validationset = tcd.PreFeatsDataset(validationset_path, n_files=n_files, viseme_set=viseme_set, sequences=True, context=context, truth='index')
 if quick_epoch_evaluation:
     dataset_epochval = tcd.PreFeatsDataset(dataset_path.replace('.json', '_lstmbalanced.json'), n_files=n_files, viseme_set=viseme_set, context=context, sequences=True, truth='index')
-    validationset_epochval = tcd.PreFeatsDataset(dataset_path.replace('.json', '_lstmbalanced.json'), n_files=n_files, viseme_set=viseme_set, context=context, sequences=True, truth='index')
+    validationset_epochval = tcd.PreFeatsDataset(validationset_path.replace('.json', '_lstmbalanced.json'), n_files=n_files, viseme_set=viseme_set, context=context, sequences=True, truth='index')
 else:
     dataset_epochval = dataset
     validationset_epochval = validationset
