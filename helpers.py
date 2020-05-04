@@ -148,7 +148,7 @@ def batch_evaluate(batch, model, truth_table, ground_truth='one-hot', device=Non
             
     return 100 * (count_correct / count_all), len(recognized_classes)
 
-def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=None):
+def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=None, dct_feats=False):
     import torch
 
     count_all = 0
@@ -156,9 +156,15 @@ def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', devic
     recognized_classes = []
     confusion_dict = {}
 
-    inputs = batch[0].squeeze(dim=0)
-    labels = batch[1].squeeze(dim=0)
+    inputs = batch[0]
+    labels = batch[1].squeeze()
+
+    if dct_feats:
+        inputs = inputs.transpose(0,1)
+
     predictions = model(inputs.to(device))
+    if dct_feats:
+        predictions = predictions[0].squeeze()
 
     for i in range(len(inputs)):
         count_all += 1
@@ -188,7 +194,7 @@ def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', devic
 
     return count_correct, count_all, len(recognized_classes), confusion_dict
 
-def lstm_evaluate(model, set, truth_table, ground_truth = 'index', device=None, limit=None, print_confusion_matrix = False):
+def lstm_evaluate(model, set, truth_table, ground_truth = 'index', device=None, limit=None, print_confusion_matrix = False, dct_feats = False):
     import torch
     from torch.utils.data import DataLoader
 
@@ -214,7 +220,7 @@ def lstm_evaluate(model, set, truth_table, ground_truth = 'index', device=None, 
     dl_iter = iter(dl)
 
     for batch in dl_iter:
-        correct, length, classes, confusion_dict = evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=device)
+        correct, length, classes, confusion_dict = evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=device, dct_feats=dct_feats)
 
         if classes > recognized_classes:
             recognized_classes = classes

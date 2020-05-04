@@ -231,14 +231,14 @@ while not abort:
     if perform_epoch_evaluation and ((epoch) % eval_every == 0 or epoch == 1):
         model.eval()
 
-        train_acc, train_classes = helpers.lstm_evaluate(model, dataset_epochval, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit)
+        train_acc, train_classes = helpers.lstm_evaluate(model, dataset_epochval, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit, dct_feats=True)
         train_acc = round(train_acc, 2)
         writer.add_scalar('train acc', train_acc, epoch + 1)
 
         print(f'Train. Acc.: {train_acc} ({train_classes}/{len(truth_table)}) // ', end='', flush=True)
 
         valid_acc = ''
-        valid_acc, valid_classes =  helpers.lstm_evaluate(model, validationset_epochval, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit)
+        valid_acc, valid_classes =  helpers.lstm_evaluate(model, validationset_epochval, truth_table, ground_truth='index', device=device, limit=epoch_evaluation_size_limit, dct_feats=True)
         valid_acc = round(valid_acc, 2)
         writer.add_scalar('valid acc', valid_acc, epoch + 1)
 
@@ -289,7 +289,7 @@ print(f'Model saved to {savepath}.\n\n')
 
 print('Evaluating over full validation set...', flush=True)
 
-acc, confusion_dict = helpers.evaluate(model, validationset, truth_table, 'index', device, verbose=True)
+acc, _, confusion_dict = helpers.lstm_evaluate(model, validationset, truth_table, 'index', device, print_confusion_matrix=True, dct_feats=True)
 helpers.print_confusion_matrix(confusion_dict, truth_table, savepath)
 
 print(f'Accuracy: {round(acc,2)}%')
