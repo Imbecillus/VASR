@@ -148,7 +148,7 @@ def batch_evaluate(batch, model, truth_table, ground_truth='one-hot', device=Non
             
     return 100 * (count_correct / count_all), len(recognized_classes)
 
-def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=None, dct_feats=False):
+def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=None, dct_feats=False, bidirectional=False):
     import torch
 
     count_all = 0
@@ -163,8 +163,13 @@ def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', devic
         inputs = inputs.transpose(0,1)
 
     predictions = model(inputs.to(device))
+
     if dct_feats:
         predictions = predictions[0].squeeze()
+    if bidirectional:
+        forward = predictions[:,:len(truth_table)]
+        backward = predictions[:,len(truth_table):]
+        predictions = forward + backward
 
     for i in range(len(inputs)):
         count_all += 1
@@ -194,7 +199,7 @@ def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', devic
 
     return count_correct, count_all, len(recognized_classes), confusion_dict
 
-def lstm_evaluate(model, set, truth_table, ground_truth = 'index', device=None, limit=None, print_confusion_matrix = False, dct_feats = False):
+def lstm_evaluate(model, set, truth_table, ground_truth = 'index', device=None, limit=None, print_confusion_matrix = False, dct_feats = False, bidirectional = False):
     import torch
     from torch.utils.data import DataLoader
 
@@ -220,7 +225,7 @@ def lstm_evaluate(model, set, truth_table, ground_truth = 'index', device=None, 
     dl_iter = iter(dl)
 
     for batch in dl_iter:
-        correct, length, classes, confusion_dict = evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=device, dct_feats=dct_feats)
+        correct, length, classes, confusion_dict = evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=device, dct_feats=dct_feats, bidirectional=bidirectional)
 
         if classes > recognized_classes:
             recognized_classes = classes
