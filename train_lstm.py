@@ -32,6 +32,7 @@ savepath = './simple_cnn.pth'
 cont_train = False
 viseme_set = None
 channels = 1
+choose_model = ''
 bidirectional = False
 lstm_layers = 1
 device = torch.device("cpu")
@@ -68,6 +69,8 @@ for arg in sys.argv:
         offset = int(arg[14:])
     if 'export=' in arg:
         savepath = arg[7:]
+    if 'model=' in arg:
+        choose_model = arg[6:]
     if 'lstm_layers=' in arg:
         lstm_layers = int(arg[12:])
     if '-b' in arg:
@@ -136,10 +139,18 @@ writer = SummaryWriter(os.path.join('runs', os.path.basename(savepath[:-4])))
 
 model = None
 
-print('Loading model...', flush=True, end=' ')
+print(f'Loading model {choose_model}...', flush=True, end=' ')
 from architectures import lstm
-embedding_layer = lstm.ResNet(channels * (2 * context + 1), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
-model = lstm.Net(128, 128, len(truth_table), lstm_layers, embedding_layer, bidirectional=bidirectional).to(device)
+if choose_model == '3-stage':
+    embedding_layer = lstm.ResNet(channels * (2 * context + 1), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
+    model = lstm.Net(128, 128, len(truth_table), lstm_layers, embedding_layer, bidirectional=bidirectional).to(device)
+elif choose_model == '2-stage':
+    embedding_layer = lstm.ResNet(channels * (2 * context + 1), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
+    model = lstm.DirectNet(128, len(truth_table), lstm_layers, embedding_layer, bidirectional=bidirectional).to(device)
+else:
+    print('unknown model type specified.\nAborting.')
+    exit()
+
 print('done.', flush=True)
 
 if cont_train:

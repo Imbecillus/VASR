@@ -148,7 +148,7 @@ def batch_evaluate(batch, model, truth_table, ground_truth='one-hot', device=Non
             
     return 100 * (count_correct / count_all), len(recognized_classes)
 
-def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=None, dct_feats=False, bidirectional=False):
+def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', device=None, dct_feats=False, bidirectional=False, model_output='prediction'):
     import torch
 
     count_all = 0

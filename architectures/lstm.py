@@ -76,10 +76,32 @@ class Net(nn.Module):
 
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, bidirectional=bidirectional)
 
-        self.bidirectional = bidirectional
+        directions = 1 if not bidirectional else 2
+        self.hidden2tag = nn.Linear(hidden_dim * directions, target_dim)
+
+    def forward(self, flow):
+        try:
+            flow = self.embedding_layer(flow)
+            flow = torch.squeeze(flow, dim=3).transpose(1, 2)
+            flow, _ = self.lstm(flow)
+            flow = self.hidden2tag(flow.squeeze())
+            #tag_scores = F.log_softmax(tag_space)
+            return flow
+        except BaseException as e:
+            print(flow.shape)
+            print(flow)
+            print(e)
+            
+class DirectNet(nn.Module):
+    def __init__(self, embedding_dim, hidden_dim, num_layers, embedding_layer, bidirectional = False):
+        super(DirectNet, self).__init__()
         self.hidden_dim = hidden_dim
 
-        self.hidden2tag = nn.Linear(hidden_dim, target_dim)
+        self.embedding_layer = embedding_layer
+
+        self.bidirectional = bidirectional
+
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, bidirectional=bidirectional)
 
     def forward(self, flow):
         try:
@@ -88,10 +110,9 @@ class Net(nn.Module):
             flow, _ = self.lstm(flow)
             flow = flow.squeeze()
             if self.bidirectional:
-                forward = flow[:,:self.hidden_dim]
-                backward = flow[:,self.hidden_dim:]
+                forward = flow[:, :self.hidden_dim]
+                backward = flow[:, self.hidden_dim:]
                 flow = forward + backward
-            flow = self.hidden2tag(flow.squeeze())
             #tag_scores = F.log_softmax(tag_space)
             return flow
         except BaseException as e:
