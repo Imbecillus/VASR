@@ -162,7 +162,7 @@ def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', devic
     if dct_feats:
         inputs = inputs.transpose(0,1)
 
-    predictions = model(inputs.to(device))
+    predictions = model(inputs.squeeze().to(device))
 
     if dct_feats:
         predictions = predictions[0].squeeze()
