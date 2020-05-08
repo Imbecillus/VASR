@@ -79,23 +79,19 @@ for arg in sys.argv:
         bidirectional = True
 print('')
 
-print(f'Loading model {choose_model}...', flush=True, end=' ')
-from architectures import lstm
-if choose_model == '3-stage':
-    embedding_layer = lstm.ResNet(channels * (2 * context + 1), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
-    model = lstm.Net(128, 128, len(truth_table), lstm_layers, embedding_layer, bidirectional=bidirectional).to(device)
-elif choose_model == '2-stage':
-    embedding_layer = lstm.ResNet(channels * (2 * context + 1), 128, (8, 16, 24, 32), dropout_rate, device).to(device)
-    model = lstm.DirectNet(128, len(truth_table), lstm_layers, embedding_layer, bidirectional=bidirectional).to(device)
-else:
-    print('unknown model type specified.\nAborting.')
-    exit()
+model = None
+
+print('Loading model...', flush=True, end=' ')
+model = torch.nn.Sequential(
+    torch.nn.LSTM(45, len(truth_table), lstm_layers, bidirectional=bidirectional)
+).to(device)
+print('done.', flush=True)
 
 print('Loading dataset...', flush=True, end=' ')
 if weighted_loss:
-    dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True, truth='index')
+    dataset = tcd.PreFeatsDataset(dataset_path, n_files=n_files, viseme_set=viseme_set, context=context, sequences=True, truth='index')
 else:
-    dataset = tcd.TCDTIMITDataset(dataset_path, n_files=n_files, data_transforms=data_transforms, viseme_set=viseme_set, context=context, sequences=True)
+    dataset = tcd.PreFeatsDataset(dataset_path, n_files=n_files, viseme_set=viseme_set, context=context, sequences=True)
 print('done.', flush=True)
 
 print('Evaluating over full validation set...', flush=True)
