@@ -156,13 +156,13 @@ def evaluate_lstm_batch(batch, model, truth_table, ground_truth = 'index', devic
     recognized_classes = []
     confusion_dict = {}
 
-    inputs = batch[0]
+    inputs = batch[0].squeeze()
     labels = batch[1].squeeze()
 
     if dct_feats:
         inputs = inputs.transpose(0,1)
 
-    predictions = model(inputs.squeeze().to(device))
+    predictions = model(inputs.to(device))
 
     if dct_feats:
         predictions = predictions[0].squeeze()

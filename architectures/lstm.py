@@ -112,9 +112,11 @@ class DirectNet(nn.Module):
             if self.bidirectional:
                 forward = flow[:, :self.hidden_dim]
                 backward = flow[:, self.hidden_dim:]
-                flow = forward + backward
+                output = forward + backward
+            else:
+                output = flow
             #tag_scores = F.log_softmax(tag_space)
-            return flow
+            return output
         except BaseException as e:
             print(flow.shape)
             print(flow)
