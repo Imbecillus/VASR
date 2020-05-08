@@ -1,5 +1,5 @@
 print('TCD-TIMIT VISUAL SPEECH RECOGNIZER - EVALUATION\nBooting up...', flush=True)
-print('Using ResNet10-LSTM', flush=True)
+print('Using DCT features', flush=True)
 
 import os
 import sys
@@ -96,7 +96,7 @@ print('done.', flush=True)
 
 print('Evaluating over full validation set...', flush=True)
 
-acc, classes, confusion_dict = helpers.lstm_evaluate(model, dataset, truth_table, 'index', device, print_confusion_matrix=True)
+acc, classes, confusion_dict = helpers.lstm_evaluate(model, dataset, truth_table, 'index', device, print_confusion_matrix=True, dct_feats=True, bidirectional=bidirectional)
 helpers.print_confusion_matrix(confusion_dict, truth_table, savepath)
 
 print(f'Accuracy: {round(acc,2)}%')
