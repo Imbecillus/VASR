@@ -34,6 +34,8 @@ weighted_loss = False
 save_every = 2
 eval_every = 1
 dropout_rate = 0.0
+bidirectional = False
+lstm_layers = 1
 
 if torch.cuda.is_available():
 	print("CUDA available", flush=True)
