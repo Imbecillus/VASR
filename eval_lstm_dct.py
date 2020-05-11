@@ -45,6 +45,8 @@ else:
 for arg in sys.argv:
     if 'import=' in arg:
         savepath = arg[7:]
+    if 'model=' in arg:
+        choose_model = arg[6:]
     if 'visemes=' in arg:
         viseme_set = arg[8:]
         if viseme_set == 'jeffersbarley':
