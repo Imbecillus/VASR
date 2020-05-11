@@ -90,6 +90,7 @@ model = torch.nn.Sequential(
     torch.nn.LSTM(45, len(truth_table), lstm_layers, bidirectional=bidirectional)
 ).to(device)
 print('done.', flush=True)
+model.load_state_dict(torch.load(savepath, map_location=device))
 
 print('Loading dataset...', flush=True, end=' ')
 if weighted_loss:

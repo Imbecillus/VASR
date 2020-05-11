@@ -94,6 +94,7 @@ elif choose_model == '2-stage':
 else:
     print('unknown model type specified.\nAborting.')
     exit()
+model.load_state_dict(torch.load(savepath, map_location=device))
 
 print('Loading dataset...', flush=True, end=' ')
 if weighted_loss:
