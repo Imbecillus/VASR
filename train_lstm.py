@@ -52,6 +52,7 @@ threshold = None
 offset = 0
 epoch_evaluation_size_limit = None
 quick_epoch_evaluation = False
+pretrained_cnn = False
 
 if torch.cuda.is_available():
 	print("CUDA available", flush=True)
@@ -132,6 +133,9 @@ for arg in sys.argv:
         batch_size = int(arg[11:])
     if 'threshold=' in arg:
         threshold = float(arg[10:])
+    if 'pretrained_cnn=' in arg:
+        pretrained_cnn = True
+        pretrained_cnn_path = arg[15:]
 print('')
 
 # Create folder with the same name as the export file for TensorBoard
@@ -152,6 +156,12 @@ else:
     exit()
 
 print('done.', flush=True)
+
+if pretrained_cnn:
+    # Load saved weights into CNN part of the net
+    missing, unexpected = model.embedding_layer.load_state_dict(torch.load(pretrained_cnn_path, map_location=device), strict=False)
+    print('Missing keys', missing)
+    print('unexpected keys', unexpected)
 
 if cont_train:
     # Load saved weights into the net

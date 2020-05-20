@@ -73,3 +73,6 @@ class Net(torch.nn.Module):
         flow = flow.view(-1, self.cnn_dense_units)
         flow = self.fc(flow)
         return flow
+
+    def load_resnet_weights(self, weight_dict):
+        
