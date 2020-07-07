@@ -1,3 +1,5 @@
+# Various helper functions for TCD-TIMIT VASR training and evaluation
+
 def time_since(start):
     import time
     now = time.time()

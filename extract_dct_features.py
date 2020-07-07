@@ -1,3 +1,6 @@
+# Extracts DCT features for the given sequence
+# Usage: python extract_dct_features.py [sequence directory] [number of features] [[-d: append deltas; -dd: append delta-deltas]]
+
 # IMPORTS
 import sys
 import os

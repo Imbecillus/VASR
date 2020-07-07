@@ -1,3 +1,6 @@
+# Contains several functions for analyzing the class distribution in a dataset
+# If called directly, prints the distribution of classes in the given json split file
+
 import sys
 import json
 import math

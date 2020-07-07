@@ -1,3 +1,6 @@
+# This script extracts DCT features.
+# Usage: extract_dct_all.sh [path to TCD-TIMIT volunteer set] [number of features] [[0: no deltas; 1: deltas; 2 delta-deltas]]
+
 echo "Extracting DCT features for everything in $1."
 path=$1
 echo "Number of features: $2"
